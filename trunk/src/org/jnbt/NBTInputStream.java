@@ -37,7 +37,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -177,7 +177,7 @@ public final class NBTInputStream implements Closeable {
 				return new ListTag(name, NBTUtils.getTypeClass(childType),
 						tagList);
 			case NBTConstants.TYPE_COMPOUND:
-				Map<String, Tag> tagMap = new HashMap<String, Tag>();
+				Map<String, Tag> tagMap = new LinkedHashMap<String, Tag>();
 				while (true) {
 					Tag tag = readTag(depth + 1);
 					if (tag instanceof EndTag) {
