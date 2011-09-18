@@ -58,12 +58,12 @@ import java.util.zip.GZIPInputStream;
  * @author Graham Edgecombe
  * 
  */
-public final class NBTInputStream implements Closeable {
+public class NBTInputStream implements Closeable {
 
 	/**
 	 * The data input stream.
 	 */
-	private final DataInputStream is;
+	private DataInputStream is;
 
 	/**
 	 * Creates a new <code>NBTInputStream</code>, which will source its data
@@ -127,7 +127,7 @@ public final class NBTInputStream implements Closeable {
 	 * @throws IOException
 	 *             if an I/O error occurs.
 	 */
-	private Tag readTagPayload(int type, String name, int depth)
+	private Tag<?> readTagPayload(int type, String name, int depth)
 			throws IOException {
 		switch (type) {
 			case NBTConstants.TYPE_END:
@@ -164,20 +164,19 @@ public final class NBTInputStream implements Closeable {
 				int childType = is.readByte();
 				length = is.readInt();
 
-				List<Tag> tagList = new ArrayList<Tag>();
+				List<Tag<?>> tagList = new ArrayList<Tag<?>>();
 				for (int i = 0; i < length; i++) {
-					Tag tag = readTagPayload(childType, "", depth + 1);
-					if (tag instanceof EndTag) {
+					Tag<?> tag = readTagPayload(childType, "", depth + 1);
+					if (tag instanceof EndTag)
 						throw new IOException(
 								"TAG_End not permitted in a list.");
-					}
 					tagList.add(tag);
 				}
 
-				return new ListTag(name, NBTUtils.getTypeClass(childType),
-						tagList);
+				Class<? extends Tag> c = NBTUtils.getTypeClass(childType);
+				return new ListTag(name, tagList, c);
 			case NBTConstants.TYPE_COMPOUND:
-				Map<String, Tag> tagMap = new LinkedHashMap<String, Tag>();
+				Map<String, Tag<?>> tagMap = new LinkedHashMap<String, Tag<?>>();
 				while (true) {
 					Tag tag = readTag(depth + 1);
 					if (tag instanceof EndTag) {

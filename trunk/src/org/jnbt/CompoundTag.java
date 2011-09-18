@@ -32,57 +32,44 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * The <code>TAG_Compound</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class CompoundTag extends Tag {
+public class CompoundTag extends Tag<Map<String, Tag<?>>> {
 
-	/**
-	 * The value.
-	 */
-	private final Map<String, Tag> value;
-
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The value.
-	 */
-	public CompoundTag(String name, Map<String, Tag> value) {
-		super(name);
-		this.value = Collections.unmodifiableMap(value);
+	public CompoundTag(String name, Map<String, Tag<?>> value) {
+		super(name, value);
 	}
 
 	@Override
-	public Map<String, Tag> getValue() {
-		return value;
+	protected Map<String, Tag<?>> createDefaultValue() {
+		return new LinkedHashMap<String, Tag<?>>();
 	}
 
 	@Override
 	public String toString() {
+		StringBuilder sb = new StringBuilder("TAG_Compound");
 		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
+		if (!name.isEmpty())
+			sb.append("(\"").append(name).append("\")");
+		Map<String, Tag<?>> map = getValue();
+		int size = map.size();
+		sb.append(": ").append(size).append(" entries\r\n{\r\n");
+		for (Map.Entry<String, Tag<?>> entry : map.entrySet()) {
+			Tag<?> tag = entry.getValue();
+			String s = tag.toString();
+			s = s.replaceAll("\r\n", "\r\n   ");
+			sb.append("   ").append(s).append("\r\n");
 		}
-		StringBuilder bldr = new StringBuilder();
-		bldr.append("TAG_Compound" + append + ": " + value.size()
-				+ " entries\r\n{\r\n");
-		for (Map.Entry<String, Tag> entry : value.entrySet()) {
-			bldr.append("   "
-					+ entry.getValue().toString().replaceAll("\r\n", "\r\n   ")
-					+ "\r\n");
-		}
-		bldr.append("}");
-		return bldr.toString();
+		sb.append("}");
+		return sb.toString();
 	}
 
 }

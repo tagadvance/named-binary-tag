@@ -36,14 +36,16 @@ package org.jnbt;
  * Represents a single NBT tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public abstract class Tag {
+public abstract class Tag<T> {
 
 	/**
 	 * The name of this tag.
 	 */
-	private final String name;
+	private String name;
+	private T value;
 
 	/**
 	 * Creates the tag with the specified name.
@@ -52,7 +54,20 @@ public abstract class Tag {
 	 *            The name.
 	 */
 	public Tag(String name) {
-		this.name = name;
+		setName(name);
+	}
+
+	/**
+	 * Creates the tag with the specified name.
+	 * 
+	 * @param name
+	 *            The name.
+	 * @param value
+	 *            The Value.
+	 */
+	public Tag(String name, T value) {
+		this(name);
+		setValue(value);
 	}
 
 	/**
@@ -60,15 +75,55 @@ public abstract class Tag {
 	 * 
 	 * @return The name of this tag.
 	 */
-	public final String getName() {
+	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		if (name == null)
+			name = createDefaultName();
+		this.name = name;
+	}
+
+	protected String createDefaultName() {
+		return "";
 	}
 
 	/**
 	 * Gets the value of this tag.
 	 * 
 	 * @return The value of this tag.
+	 * @throws IllegalStateException
 	 */
-	public abstract Object getValue();
+	public T getValue() {
+		if (value == null)
+			setValue(null);
+		return this.value;
+	}
+
+	/**
+	 * Sets the value of this <code>Tag</code> to the specified value.
+	 * 
+	 * @param value
+	 *            the new value to be set
+	 */
+	public void setValue(T value) {
+		if (value == null)
+			value = createDefaultValue();
+		this.value = value;
+	}
+
+	protected T createDefaultValue() {
+		throw new IllegalStateException();
+	}
+
+	protected String toString(String tagType) {
+		StringBuilder sb = new StringBuilder(tagType);
+		String name = getName();
+		if (!name.isEmpty())
+			sb.append("(\"").append(name).append("\")");
+		sb.append(": ").append(value);
+		return sb.toString();
+	}
 
 }

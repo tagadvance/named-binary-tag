@@ -36,41 +36,18 @@ package org.jnbt;
  * The <code>TAG_Double</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class DoubleTag extends Tag {
-
-	/**
-	 * The value.
-	 */
-	private final double value;
-
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The value.
-	 */
+public class DoubleTag extends Tag<Double> {
+	
 	public DoubleTag(String name, double value) {
-		super(name);
-		this.value = value;
-	}
-
-	@Override
-	public Double getValue() {
-		return value;
+		super(name, value);
 	}
 
 	@Override
 	public String toString() {
-		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
-		}
-		return "TAG_Double" + append + ": " + value;
+		return toString("TAG_Double");
 	}
 
 }

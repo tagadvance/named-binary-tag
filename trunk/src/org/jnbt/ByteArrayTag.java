@@ -1,5 +1,7 @@
 package org.jnbt;
 
+import com.tag.HexUtils;
+
 /*
  * JNBT License
  * 
@@ -36,14 +38,10 @@ package org.jnbt;
  * The <code>TAG_Byte_Array</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class ByteArrayTag extends Tag {
-
-	/**
-	 * The value.
-	 */
-	private final byte[] value;
+public class ByteArrayTag extends Tag<byte[]> {
 
 	/**
 	 * Creates the tag.
@@ -54,31 +52,27 @@ public final class ByteArrayTag extends Tag {
 	 *            The value.
 	 */
 	public ByteArrayTag(String name, byte[] value) {
-		super(name);
-		this.value = value;
+		super(name, value);
 	}
 
 	@Override
-	public byte[] getValue() {
-		return value;
+	protected byte[] createDefaultValue() {
+		return new byte[] {};
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder hex = new StringBuilder();
-		for (byte b : value) {
-			String hexDigits = Integer.toHexString(b).toUpperCase();
-			if (hexDigits.length() == 1) {
-				hex.append("0");
-			}
-			hex.append(hexDigits).append(" ");
-		}
+		StringBuilder sb = new StringBuilder("TAG_Byte_Array");
 		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
+		if (!name.isEmpty())
+			sb.append("(\"").append(name).append("\")");
+		sb.append(":");
+		for (byte b : getValue()) {
+			sb.append(" ");
+			String hex = HexUtils.byteToHex(b);
+			sb.append(hex);
 		}
-		return "TAG_Byte_Array" + append + ": " + hex.toString();
+		return sb.toString();
 	}
 
 }
