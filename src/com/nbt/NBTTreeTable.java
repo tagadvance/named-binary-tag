@@ -201,11 +201,7 @@ public class NBTTreeTable extends JXTreeTable {
 		NBTTreeTableModel treeTableModel = getTreeTableModel();
 		Tag<?> root = treeTableModel.getRoot();
 		TreePath path = new TreePath(root);
-		TreePath nodePath = getPathForNode(path, node);
-		if (nodePath == null)
-			throw new IllegalComponentStateException("node not found in tree");
-
-		return nodePath;
+		return getPathForNode(path, node);
 	}
 
 	/**
