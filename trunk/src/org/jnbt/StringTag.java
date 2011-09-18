@@ -40,14 +40,16 @@ package org.jnbt;
  * 
  */
 public class StringTag extends Tag<String> {
-
+	
+	public static final String TAG_NAME = "TAG_String";
+	
 	public StringTag(String name, String value) {
 		super(name, value);
 	}
 
 	@Override
 	public String toString() {
-		return toString("TAG_String");
+		return toString(TAG_NAME);
 	}
 
 }

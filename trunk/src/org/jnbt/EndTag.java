@@ -40,6 +40,8 @@ package org.jnbt;
  * 
  */
 public class EndTag extends Tag<Void> {
+	
+	public static final String TAG_NAME = "TAG_End";
 
 	/**
 	 * Creates the tag.
@@ -60,7 +62,7 @@ public class EndTag extends Tag<Void> {
 
 	@Override
 	public String toString() {
-		return "TAG_End";
+		return TAG_NAME;
 	}
 
 }

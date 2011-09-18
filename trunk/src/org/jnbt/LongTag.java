@@ -40,6 +40,8 @@ package org.jnbt;
  * 
  */
 public class LongTag extends Tag<Long> {
+	
+	public static final String TAG_NAME = "TAG_Long";
 
 	public LongTag(String name, long value) {
 		super(name, value);
@@ -47,7 +49,7 @@ public class LongTag extends Tag<Long> {
 
 	@Override
 	public String toString() {
-		return toString("TAG_Long");
+		return toString(TAG_NAME);
 	}
 
 }
