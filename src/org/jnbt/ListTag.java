@@ -32,26 +32,22 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The <code>TAG_List</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class ListTag extends Tag {
+public class ListTag extends Tag<List<Tag<?>>> {
 
 	/**
 	 * The type.
 	 */
-	private final Class<? extends Tag> type;
-
-	/**
-	 * The value.
-	 */
-	private final List<Tag> value;
+	private Class<? extends Tag> type;
 
 	/**
 	 * Creates the tag.
@@ -63,10 +59,9 @@ public final class ListTag extends Tag {
 	 * @param value
 	 *            The value.
 	 */
-	public ListTag(String name, Class<? extends Tag> type, List<Tag> value) {
-		super(name);
-		this.type = type;
-		this.value = Collections.unmodifiableList(value);
+	public ListTag(String name, List<Tag<?>> value, Class<? extends Tag> type) {
+		super(name, value);
+		setType(type);
 	}
 
 	/**
@@ -78,28 +73,36 @@ public final class ListTag extends Tag {
 		return type;
 	}
 
+	private void setType(Class<? extends Tag> type) {
+		if (type == null)
+			throw new IllegalArgumentException("type must not be null");
+		this.type = type;
+	}
+
 	@Override
-	public List<Tag> getValue() {
-		return value;
+	protected List<Tag<?>> createDefaultValue() {
+		return new ArrayList<Tag<?>>();
 	}
 
 	@Override
 	public String toString() {
+		StringBuilder sb = new StringBuilder("TAG_List");
 		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
+		if (!name.isEmpty())
+			sb.append("(\"").append(name).append("\")");
+		List<Tag<?>> value = getValue();
+		int size = value.size();
+		Class<? extends Tag> type = getType();
+		String typeName = NBTUtils.getTypeName(type);
+		sb.append(": ").append(size).append(" entries of type ")
+				.append(typeName).append("\r\n{\r\n");
+		for (Tag<?> tag : value) {
+			String s = tag.toString();
+			s = s.replaceAll("\r\n", "\r\n   ");
+			sb.append("   ").append(s).append("\r\n");
 		}
-		StringBuilder bldr = new StringBuilder();
-		bldr.append("TAG_List" + append + ": " + value.size()
-				+ " entries of type " + NBTUtils.getTypeName(type)
-				+ "\r\n{\r\n");
-		for (Tag t : value) {
-			bldr.append("   " + t.toString().replaceAll("\r\n", "\r\n   ")
-					+ "\r\n");
-		}
-		bldr.append("}");
-		return bldr.toString();
+		sb.append("}");
+		return sb.toString();
 	}
 
 }

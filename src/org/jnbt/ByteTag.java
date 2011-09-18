@@ -36,14 +36,10 @@ package org.jnbt;
  * The <code>TAG_Byte</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class ByteTag extends Tag {
-
-	/**
-	 * The value.
-	 */
-	private final byte value;
+public class ByteTag extends Tag<Byte> {
 
 	/**
 	 * Creates the tag.
@@ -54,23 +50,12 @@ public final class ByteTag extends Tag {
 	 *            The value.
 	 */
 	public ByteTag(String name, byte value) {
-		super(name);
-		this.value = value;
-	}
-
-	@Override
-	public Byte getValue() {
-		return value;
+		super(name, value);
 	}
 
 	@Override
 	public String toString() {
-		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
-		}
-		return "TAG_Byte" + append + ": " + value;
+		return toString("TAG_Byte");
 	}
 
 }

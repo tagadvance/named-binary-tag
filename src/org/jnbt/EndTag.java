@@ -36,9 +36,10 @@ package org.jnbt;
  * The <code>TAG_End</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class EndTag extends Tag {
+public class EndTag extends Tag<Void> {
 
 	/**
 	 * Creates the tag.
@@ -48,8 +49,13 @@ public final class EndTag extends Tag {
 	}
 
 	@Override
-	public Object getValue() {
+	public Void getValue() {
 		return null;
+	}
+
+	@Override
+	public void setValue(Void value) {
+		throw new IllegalStateException("wtf?");
 	}
 
 	@Override

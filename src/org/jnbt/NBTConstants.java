@@ -40,12 +40,12 @@ import java.nio.charset.Charset;
  * @author Graham Edgecombe
  * 
  */
-public final class NBTConstants {
+public class NBTConstants {
 
 	/**
 	 * The character set used by NBT (UTF-8).
 	 */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+	public static Charset CHARSET = Charset.forName("UTF-8");
 
 	/**
 	 * Tag type constants.

@@ -54,12 +54,12 @@ import java.util.zip.GZIPOutputStream;
  * @author Graham Edgecombe
  * 
  */
-public final class NBTOutputStream implements Closeable {
+public class NBTOutputStream implements Closeable {
 
 	/**
 	 * The output stream.
 	 */
-	private final DataOutputStream os;
+	private DataOutputStream os;
 
 	/**
 	 * Creates a new <code>NBTOutputStream</code>, which will write data to the
@@ -198,7 +198,7 @@ public final class NBTOutputStream implements Closeable {
 	 */
 	private void writeListTagPayload(ListTag tag) throws IOException {
 		Class<? extends Tag> clazz = tag.getType();
-		List<Tag> tags = tag.getValue();
+		List<Tag<?>> tags = tag.getValue();
 		int size = tags.size();
 
 		os.writeByte(NBTUtils.getTypeCode(clazz));

@@ -36,41 +36,18 @@ package org.jnbt;
  * The <code>TAG_Short</code> tag.
  * 
  * @author Graham Edgecombe
+ * @author Taggart Spilman
  * 
  */
-public final class ShortTag extends Tag {
-
-	/**
-	 * The value.
-	 */
-	private final short value;
-
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The value.
-	 */
+public class ShortTag extends Tag<Short> {
+	
 	public ShortTag(String name, short value) {
-		super(name);
-		this.value = value;
+		super(name, value);
 	}
-
-	@Override
-	public Short getValue() {
-		return value;
-	}
-
+	
 	@Override
 	public String toString() {
-		String name = getName();
-		String append = "";
-		if (name != null && !name.equals("")) {
-			append = "(\"" + this.getName() + "\")";
-		}
-		return "TAG_Short" + append + ": " + value;
+		return toString("TAG_Short");
 	}
 
 }
