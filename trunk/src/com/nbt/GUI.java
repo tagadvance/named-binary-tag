@@ -29,6 +29,9 @@
 
 package com.nbt;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.EventQueue;
@@ -37,17 +40,27 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.prefs.Preferences;
 
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -62,15 +75,31 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.tree.TreePath;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jdesktop.swingx.autocomplete.ListAdaptor;
+import org.jnbt.ByteArrayTag;
+import org.jnbt.ByteTag;
 import org.jnbt.CompoundTag;
+import org.jnbt.DoubleTag;
+import org.jnbt.FloatTag;
+import org.jnbt.IntTag;
+import org.jnbt.ListTag;
+import org.jnbt.LongTag;
 import org.jnbt.NBTConstants;
 import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
+import org.jnbt.NBTUtils;
+import org.jnbt.ShortTag;
+import org.jnbt.StringTag;
+import org.jnbt.Tag;
 
 import com.tag.ImageFactory;
 import com.tag.WindowPreferences;
@@ -145,9 +174,9 @@ public class GUI extends JFrame {
 	public GUI() {
 		createActions();
 		initComponents();
-		initListeners();
 
 		restoreFile();
+		updateActions();
 
 		WindowPreferences prefs = new WindowPreferences(this, getTitle());
 		prefs.restoreAll();
@@ -164,8 +193,7 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				treeTable = new NBTTreeTable(new CompoundTag(""));
-				scrollPane.setViewportView(treeTable);
+				updateTreeTable(new CompoundTag(""));
 			}
 
 		};
@@ -211,6 +239,13 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				String path = textFile.getText();
+				File file = new File(path);
+				if (file.canWrite()) {
+					doExport(file);
+				} else {
+					saveAsAction.actionPerformed(e);
+				}
 			}
 
 		};
@@ -219,7 +254,19 @@ public class GUI extends JFrame {
 				KeyEvent.VK_UNDEFINED) {
 
 			public void actionPerformed(ActionEvent e) {
-
+				JFileChooser fc = new JFileChooser();
+				Preferences prefs = getPreferences();
+				String exportFile = prefs.get(KEY_FILE, null);
+				File selectedFile = (exportFile == null ? new File(".")
+						: new File(exportFile));
+				fc.setSelectedFile(selectedFile);
+				switch (fc.showSaveDialog(GUI.this)) {
+					case JFileChooser.APPROVE_OPTION:
+						File file = fc.getSelectedFile();
+						prefs.put(KEY_FILE, file.getAbsolutePath());
+						doExport(file);
+						break;
+				}
 			}
 
 		};
@@ -228,6 +275,7 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				// TODO: this should check to see if any changes have been made before exiting
 				System.exit(0);
 			}
 
@@ -349,7 +397,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("add byte");
+				addTag(new ByteTag("new byte", (byte) 0));
 			}
 
 		};
@@ -363,7 +411,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new ShortTag("new short", (short) 0));
 			}
 
 		};
@@ -377,7 +425,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new IntTag("new int", 0));
 			}
 
 		};
@@ -391,7 +439,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new LongTag("new long", 0));
 			}
 
 		};
@@ -405,7 +453,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new FloatTag("new float", 0));
 			}
 
 		};
@@ -419,7 +467,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new DoubleTag("new double", 0));
 			}
 
 		};
@@ -433,7 +481,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new ByteArrayTag("new byte array"));
 			}
 
 		};
@@ -447,7 +495,7 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-
+				addTag(new StringTag("new string", "..."));
 			}
 
 		};
@@ -461,7 +509,58 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
+				Class<? extends Tag> type = queryType();
+				if (type != null)
+					addTag(new ListTag("new list", null, type));
+			}
 
+			private Class<? extends Tag> queryType() {
+				Object[] items = {
+						NBTConstants.TYPE_BYTE, NBTConstants.TYPE_SHORT,
+						NBTConstants.TYPE_INT, NBTConstants.TYPE_LONG,
+						NBTConstants.TYPE_FLOAT, NBTConstants.TYPE_DOUBLE,
+						NBTConstants.TYPE_BYTE_ARRAY, NBTConstants.TYPE_STRING,
+						NBTConstants.TYPE_LIST, NBTConstants.TYPE_COMPOUND
+				};
+				JComboBox comboBox = new JComboBox(new DefaultComboBoxModel(
+						items));
+				comboBox.setRenderer(new DefaultListCellRenderer() {
+
+					@Override
+					public Component getListCellRendererComponent(JList list,
+							Object value, int index, boolean isSelected,
+							boolean cellHasFocus) {
+						super.getListCellRendererComponent(list, value, index,
+								isSelected, cellHasFocus);
+
+						if (value instanceof Integer) {
+							Integer i = (Integer) value;
+							Class<? extends Tag> c = NBTUtils.getTypeClass(i);
+							String name = NBTUtils.getTypeName(c);
+							setText(name);
+						}
+
+						return this;
+					}
+
+				});
+				Object[] message = {
+						new JLabel("Please select a type."), comboBox
+				};
+				String title = "Title goes here";
+				int result = JOptionPane.showOptionDialog(GUI.this, message,
+						title, JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.QUESTION_MESSAGE, null, null, null);
+				switch (result) {
+					case JOptionPane.OK_OPTION:
+						ComboBoxModel model = comboBox.getModel();
+						Object item = model.getSelectedItem();
+						if (item instanceof Integer) {
+							Integer i = (Integer) item;
+							return NBTUtils.getTypeClass(i);
+						}
+				}
+				return null;
 			}
 
 		};
@@ -494,6 +593,42 @@ public class GUI extends JFrame {
 
 	}
 
+	protected void updateActions() {
+		Map<Integer, Action> actionMap = new LinkedHashMap<Integer, Action>();
+		actionMap.put(NBTConstants.TYPE_BYTE, addByteAction);
+		actionMap.put(NBTConstants.TYPE_SHORT, addShortAction);
+		actionMap.put(NBTConstants.TYPE_INT, addIntAction);
+		actionMap.put(NBTConstants.TYPE_LONG, addLongAction);
+		actionMap.put(NBTConstants.TYPE_FLOAT, addFloatAction);
+		actionMap.put(NBTConstants.TYPE_DOUBLE, addDoubleAction);
+		actionMap.put(NBTConstants.TYPE_BYTE_ARRAY, addByteArrayAction);
+		actionMap.put(NBTConstants.TYPE_STRING, addStringAction);
+		actionMap.put(NBTConstants.TYPE_LIST, addListAction);
+		actionMap.put(NBTConstants.TYPE_COMPOUND, addCompoundAction);
+		for (Action action : actionMap.values())
+			action.setEnabled(false);
+				
+		if (treeTable == null)
+			return;
+
+		int row = treeTable.getSelectedRow();
+		TreePath path = treeTable.getPathForRow(row);
+		Object last = path.getLastPathComponent();
+
+		if (last instanceof ByteArrayTag) {
+			addByteAction.setEnabled(true);
+		} else if (last instanceof ListTag) {
+			ListTag list = (ListTag) last;
+			Class<? extends ListTag> c = list.getClass();
+			int type = NBTUtils.getTypeCode(c);
+			Action action = actionMap.get(type);
+			action.setEnabled(true);
+		} else if (last instanceof CompoundTag) {
+			for (Action action : actionMap.values())
+				action.setEnabled(true);
+		}
+	}
+
 	private void initComponents() {
 		setTitle("NBT Editor");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -512,6 +647,14 @@ public class GUI extends JFrame {
 		textFile = new JTextField();
 		textFile.setEditable(false);
 		btnBrowse = new JButton("Browse");
+		btnBrowse.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				openAction.actionPerformed(e);
+			}
+
+		});
 		scrollPane = new JScrollPane();
 
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
@@ -637,7 +780,8 @@ public class GUI extends JFrame {
 		toolBar.add(new ToolBarButton(openAction));
 		toolBar.add(new ToolBarButton(saveAction));
 		toolBar.add(new ToolBarButton(saveAsAction));
-		toolBar.add(new ToolBarButton(exitAction));
+		toolBar.addSeparator();
+		toolBar.add(new ToolBarButton(deleteAction));
 		toolBar.addSeparator();
 
 		toolBar.add(new ToolBarButton(addByteAction));
@@ -654,17 +798,6 @@ public class GUI extends JFrame {
 		return toolBar;
 	}
 
-	private void initListeners() {
-		btnBrowse.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				openAction.actionPerformed(e);
-			}
-
-		});
-	}
-
 	private void restoreFile() {
 		Preferences prefs = getPreferences();
 		String pathname = prefs.get(KEY_FILE, null);
@@ -676,6 +809,9 @@ public class GUI extends JFrame {
 
 	public void doImport(final File file) {
 		textFile.setText(file.getAbsolutePath());
+
+		Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		setCursor(waitCursor);
 
 		new SwingWorker<CompoundTag, Void>() {
 
@@ -703,11 +839,110 @@ public class GUI extends JFrame {
 					showErrorDialog(cause.getMessage());
 					return;
 				}
-				treeTable = new NBTTreeTable(tag);
-				scrollPane.setViewportView(treeTable);
+				updateTreeTable(tag);
+
+				Cursor defaultCursor = Cursor.getDefaultCursor();
+				setCursor(defaultCursor);
 			}
 
 		}.execute();
+	}
+
+	public void doExport(final File file) {
+		textFile.setText(file.getAbsolutePath());
+
+		Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		setCursor(waitCursor);
+
+		NBTTreeTableModel model = treeTable.getTreeTableModel();
+		final CompoundTag tag = model.getRoot();
+
+		new SwingWorker<Void, Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				NBTOutputStream ns = null;
+				try {
+					ns = new NBTOutputStream(new FileOutputStream(file));
+					ns.writeTag(tag);
+				} finally {
+					IOUtils.closeQuietly(ns);
+				}
+				return null;
+			}
+
+			@Override
+			protected void done() {
+				Cursor defaultCursor = Cursor.getDefaultCursor();
+				setCursor(defaultCursor);
+
+				try {
+					get();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+					Throwable cause = ExceptionUtils.getRootCause(e);
+					showErrorDialog(cause.getMessage());
+					return;
+				}
+			}
+
+		}.execute();
+	}
+
+	public void addTag(Tag<?> tag) {
+		if (treeTable == null) {
+			showErrorDialog("Tree is null");
+			return;
+		}
+
+		int row = treeTable.getSelectedRow();
+		if (row == -1) {
+			showErrorDialog("row == -1");
+			return;
+		}
+
+		TreePath path = treeTable.getPathForRow(row);
+		Object last = path.getLastPathComponent();
+		if (last instanceof ByteArrayTag) {
+			showErrorDialog("add logic for variable length byte arrays");
+		} else if (last instanceof ListTag) {
+			ListTag listTag = (ListTag) last;
+			List<Tag<?>> list = listTag.getValue();
+			list.add(tag);
+		} else if (last instanceof CompoundTag) {
+			CompoundTag compoundTag = (CompoundTag) last;
+			Map<String, Tag<?>> list = compoundTag.getValue();
+			list.put(tag.getName(), tag);
+		} else {
+			return;
+		}
+
+		// TODO: find a more elegant way to add nodes
+		NBTTreeTableModel model = treeTable.getTreeTableModel();
+		CompoundTag root = model.getRoot();
+		updateTreeTable(root);
+
+		path = treeTable.getPathForNode(tag);
+		row = treeTable.getRowForPath(path);
+		if (row != -1) {
+			treeTable.setRowSelectionInterval(row, row);
+			treeTable.scrollPathToVisible(path);
+		}
+	}
+
+	protected void updateTreeTable(CompoundTag tag) {
+		treeTable = new NBTTreeTable(tag);
+		treeTable.addTreeSelectionListener(new TreeSelectionListener() {
+
+			@Override
+			public void valueChanged(TreeSelectionEvent e) {
+				updateActions();
+			}
+
+		});
+		scrollPane.setViewportView(treeTable);
 	}
 
 	public void showErrorDialog(String message) {
