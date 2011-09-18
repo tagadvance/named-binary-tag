@@ -255,20 +255,25 @@ public class NBTTreeTable extends JXTreeTable {
 				byte b = (Byte) value;
 				editor = new HexCellEditor(b);
 			} else if (value instanceof Short) {
-				editor = new SpinnerCellEditor((Short) value, Short.MIN_VALUE,
-						Short.MAX_VALUE, stepSize);
+				editor = new SpinnerCellEditor(new SpinnerNumberModel(
+						(Number) value, Short.MIN_VALUE, Short.MAX_VALUE,
+						stepSize));
 			} else if (value instanceof Integer) {
-				editor = new SpinnerCellEditor((Integer) value,
-						Integer.MIN_VALUE, Integer.MAX_VALUE, stepSize);
+				editor = new SpinnerCellEditor(new SpinnerNumberModel(
+						(Number) value, Integer.MIN_VALUE, Integer.MAX_VALUE,
+						stepSize));
 			} else if (value instanceof Long) {
-				editor = new SpinnerCellEditor((Long) value, Long.MIN_VALUE,
-						Long.MAX_VALUE, stepSize);
+				editor = new SpinnerCellEditor(new SpinnerNumberModel(
+						(Number) value, Long.MIN_VALUE, Long.MAX_VALUE,
+						stepSize));
 			} else if (value instanceof Float) {
-				editor = new SpinnerCellEditor((Float) value, Float.MIN_VALUE,
-						Float.MAX_VALUE, stepSize);
+				editor = new SpinnerCellEditor(new SpinnerNumberModel(
+						(Number) value, Float.MIN_VALUE, Float.MAX_VALUE,
+						stepSize));
 			} else if (value instanceof Double) {
-				editor = new SpinnerCellEditor((Double) value,
-						Double.MIN_VALUE, Double.MAX_VALUE, stepSize);
+				editor = new SpinnerCellEditor(new SpinnerNumberModel(
+						(Number) value, Double.MIN_VALUE, Double.MAX_VALUE,
+						stepSize));
 			} else {
 				return null;
 			}
@@ -285,18 +290,8 @@ public class NBTTreeTable extends JXTreeTable {
 		protected JSpinner spinner;
 		protected int clickCountToStart = 2;
 
-		public SpinnerCellEditor(int value, int minimum, int maximum,
-				int stepSize) {
-			this.spinner = new JSpinner();
-			spinner.setModel(new SpinnerNumberModel(value, minimum, maximum,
-					stepSize));
-		}
-
-		public SpinnerCellEditor(double value, double minimum, double maximum,
-				double stepSize) {
-			this.spinner = new JSpinner();
-			spinner.setModel(new SpinnerNumberModel(value, minimum, maximum,
-					stepSize));
+		public SpinnerCellEditor(SpinnerNumberModel model) {
+			this.spinner = new JSpinner(model);
 		}
 
 		public Component getTableCellEditorComponent(JTable table,
@@ -331,7 +326,7 @@ public class NBTTreeTable extends JXTreeTable {
 		}
 
 		public HexCellEditor(int value) {
-			super(value, MINIMUM, MAXIMUM, STEP_SIZE);
+			super(new SpinnerNumberModel(value, MINIMUM, MAXIMUM, STEP_SIZE));
 			spinner.setEditor(new HexEditor(spinner));
 		}
 
