@@ -102,8 +102,19 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 					if (value instanceof byte[]) {
 						byte[] bytes = (byte[]) value;
 						return bytes.length + " bytes";
-					} else if (value instanceof List || value instanceof Map) {
-						return null;
+					} else if (value instanceof List) {
+						List list = (List) value;
+						int size = list.size();
+						return size
+								+ (size != 0 && size > 1 ? " entries"
+										: " entry");
+					} else if (value instanceof Map) {
+						@SuppressWarnings("rawtypes")
+						Map map = (Map) value;
+						int size = map.size();
+						return size
+								+ (size != 0 && size > 1 ? " entries"
+										: " entry");
 					} else {
 						return value;
 					}
@@ -139,6 +150,8 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 				break;
 			case 1:
 				if (node instanceof Tag) {
+					System.out.println(node.getClass());
+					System.out.println(value.getClass());
 					@SuppressWarnings("rawtypes")
 					Tag tag = (Tag) node;
 					tag.setValue(value);

@@ -829,8 +829,6 @@ public class GUI extends JFrame {
 	}
 
 	public void doImport(final File file) {
-		textFile.setText(file.getAbsolutePath());
-
 		Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 		setCursor(waitCursor);
 
@@ -860,6 +858,8 @@ public class GUI extends JFrame {
 					showErrorDialog(cause.getMessage());
 					return;
 				}
+				textFile.setText(file.getAbsolutePath());
+				
 				updateTreeTable(tag);
 
 				Cursor defaultCursor = Cursor.getDefaultCursor();
