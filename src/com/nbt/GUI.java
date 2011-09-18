@@ -736,7 +736,7 @@ public class GUI extends JFrame {
 	}
 
 	private void initComponents() {
-		setTitle("NBT Editor");
+		setTitle("NBT Pro");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = createMenuBar();
