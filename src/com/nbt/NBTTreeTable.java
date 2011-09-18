@@ -31,30 +31,17 @@ package com.nbt;
 
 import java.awt.Component;
 import java.awt.Image;
-import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.EventObject;
 
-import javax.swing.AbstractCellEditor;
-import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JFormattedTextField;
-import javax.swing.JSpinner;
-import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import javax.swing.text.DefaultFormatter;
-import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 
@@ -222,154 +209,6 @@ public class NBTTreeTable extends JXTreeTable {
 				return result;
 		}
 		return null;
-	}
-
-	class NBTTableCellEditor extends AbstractCellEditor implements
-			TableCellEditor {
-
-		private TableCellEditor editor;
-
-		@Override
-		public Object getCellEditorValue() {
-			if (editor != null) {
-				return editor.getCellEditorValue();
-			}
-
-			return null;
-		}
-
-		@Override
-		public Component getTableCellEditorComponent(JTable table,
-				Object value, boolean isSelected, int row, int column) {
-			final int stepSize = 1;
-			if (value instanceof String) {
-				editor = new DefaultCellEditor(new JTextField());
-			} else if (value instanceof Boolean) {
-				editor = new DefaultCellEditor(new JCheckBox());
-			} else if (value instanceof Byte) {
-				byte b = (Byte) value;
-				editor = new HexCellEditor(b);
-			} else if (value instanceof Short) {
-				editor = new SpinnerCellEditor(new SpinnerNumberModel(
-						(Number) value, Short.MIN_VALUE, Short.MAX_VALUE,
-						stepSize));
-			} else if (value instanceof Integer) {
-				editor = new SpinnerCellEditor(new SpinnerNumberModel(
-						(Number) value, Integer.MIN_VALUE, Integer.MAX_VALUE,
-						stepSize));
-			} else if (value instanceof Long) {
-				editor = new SpinnerCellEditor(new SpinnerNumberModel(
-						(Number) value, Long.MIN_VALUE, Long.MAX_VALUE,
-						stepSize));
-			} else if (value instanceof Float) {
-				editor = new SpinnerCellEditor(new SpinnerNumberModel(
-						(Number) value, Float.MIN_VALUE, Float.MAX_VALUE,
-						stepSize));
-			} else if (value instanceof Double) {
-				editor = new SpinnerCellEditor(new SpinnerNumberModel(
-						(Number) value, Double.MIN_VALUE, Double.MAX_VALUE,
-						stepSize));
-			} else {
-				return null;
-			}
-
-			return editor.getTableCellEditorComponent(table, value, isSelected,
-					row, column);
-		}
-
-	}
-
-	class SpinnerCellEditor extends AbstractCellEditor implements
-			TableCellEditor {
-
-		protected JSpinner spinner;
-		protected int clickCountToStart = 2;
-
-		public SpinnerCellEditor(SpinnerNumberModel model) {
-			this.spinner = new JSpinner(model);
-		}
-
-		public Component getTableCellEditorComponent(JTable table,
-				Object value, boolean isSelected, int row, int column) {
-			spinner.setValue(value);
-			return spinner;
-		}
-
-		public boolean isCellEditable(EventObject e) {
-			if (e instanceof MouseEvent) {
-				MouseEvent event = (MouseEvent) e;
-				int clickCount = event.getClickCount();
-				return clickCount >= clickCountToStart;
-			}
-			return true;
-		}
-
-		public Object getCellEditorValue() {
-			return spinner.getValue();
-		}
-
-	}
-
-	class HexCellEditor extends SpinnerCellEditor {
-
-		static final int MINIMUM = 0;
-		static final int MAXIMUM = 0xFF;
-		static final int STEP_SIZE = 1;
-
-		public HexCellEditor(byte b) {
-			this(b & 0xFF);
-		}
-
-		public HexCellEditor(int value) {
-			super(new SpinnerNumberModel(value, MINIMUM, MAXIMUM, STEP_SIZE));
-			spinner.setEditor(new HexEditor(spinner));
-		}
-
-		class HexEditor extends DefaultEditor {
-
-			public HexEditor(JSpinner spinner) {
-				super(spinner);
-
-				JFormattedTextField ftf = getTextField();
-				ftf.setEditable(true);
-				ftf.setColumns(2);
-				ftf.setHorizontalAlignment(JTextField.RIGHT);
-				ftf.setFormatterFactory(new DefaultFormatterFactory(
-						new HexFormatter()));
-			}
-
-		}
-
-		class HexFormatter extends DefaultFormatter {
-
-			private HexFormatter() {
-				super();
-			}
-
-			public Object stringToValue(String string) throws ParseException {
-				try {
-					int radix = 16;
-					return Integer.valueOf(string, radix);
-				} catch (NumberFormatException nfe) {
-					int errorOffset = 0;
-					throw new ParseException(string, errorOffset);
-				}
-			}
-
-			@Override
-			public String valueToString(Object value) throws ParseException {
-				if (!(value instanceof Number)) {
-					int errorOffset = 0;
-					throw new ParseException("" + value, errorOffset);
-				}
-
-				Number n = (Number) value;
-				int i = n.intValue();
-				return HexUtils.intToHex(i);
-			}
-
-		}
-
 	}
 
 }
