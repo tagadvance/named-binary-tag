@@ -29,26 +29,18 @@
 
 package com.nbt;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -80,7 +72,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -228,9 +219,13 @@ public class GUI extends JFrame {
 				fc.setFileFilter(filter);
 				Preferences prefs = getPreferences();
 				String exportFile = prefs.get(KEY_FILE, null);
-				File selectedFile = (exportFile == null ? new File(".")
-						: new File(exportFile));
-				fc.setSelectedFile(selectedFile);
+				if (exportFile == null) {
+					File cwd = new File(".");
+					fc.setCurrentDirectory(cwd);
+				} else {
+					File selectedFile = new File(exportFile);
+					fc.setSelectedFile(selectedFile);
+				}
 				switch (fc.showOpenDialog(GUI.this)) {
 					case JFileChooser.APPROVE_OPTION:
 						File file = fc.getSelectedFile();
@@ -269,9 +264,13 @@ public class GUI extends JFrame {
 				JFileChooser fc = new JFileChooser();
 				Preferences prefs = getPreferences();
 				String exportFile = prefs.get(KEY_FILE, null);
-				File selectedFile = (exportFile == null ? new File(".")
-						: new File(exportFile));
-				fc.setSelectedFile(selectedFile);
+				if (exportFile == null) {
+					File cwd = new File(".");
+					fc.setCurrentDirectory(cwd);
+				} else {
+					File selectedFile = new File(exportFile);
+					fc.setSelectedFile(selectedFile);
+				}
 				switch (fc.showSaveDialog(GUI.this)) {
 					case JFileChooser.APPROVE_OPTION:
 						File file = fc.getSelectedFile();
@@ -661,7 +660,8 @@ public class GUI extends JFrame {
 						new JLabel("NBT Pro v1.0.0"),
 						new JLabel(
 								"\u00A9 Copyright Taggart Spilman 2011.  All rights reserved."),
-						new Hyperlink("<html><a href=\"#\">NamedBinaryTag.com</a></html>",
+						new Hyperlink(
+								"<html><a href=\"#\">NamedBinaryTag.com</a></html>",
 								"http://www.namedbinarytag.com"),
 						new Hyperlink("<html><a href=\"#\">Contact</a></html>",
 								"mailto:tagadvance@gmail.com"),
@@ -829,7 +829,7 @@ public class GUI extends JFrame {
 		browsePanel.setLayout(gl_browsePanel);
 		contentPane.setLayout(gl_contentPane);
 
-		int width = 400, height = 300;
+		int width = 440, height = 400;
 		setMinimumSize(new Dimension(width, height));
 
 		pack();
