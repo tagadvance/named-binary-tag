@@ -29,18 +29,26 @@
 
 package com.nbt;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -72,6 +80,7 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -102,6 +111,7 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.tag.Hyperlink;
 import com.tag.ImageFactory;
 import com.tag.WindowPreferences;
 
@@ -639,14 +649,40 @@ public class GUI extends JFrame {
 
 		};
 
-		helpAction = new NBTAction("Help", "Help", "Help", KeyEvent.VK_F1) {
+		helpAction = new NBTAction("About NBT Pro", "Help", "About NBT Pro",
+				KeyEvent.VK_F1) {
 
 			{
 				putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("F1"));
 			}
 
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("help?");
+				Object[] message = {
+						new JLabel("NBT Pro v1.0.0"),
+						new JLabel(
+								"\u00A9 Copyright Taggart Spilman 2011.  All rights reserved."),
+						new Hyperlink("<html><a href=\"#\">NamedBinaryTag.com</a></html>",
+								"http://www.namedbinarytag.com"),
+						new Hyperlink("<html><a href=\"#\">Contact</a></html>",
+								"mailto:tagadvance@gmail.com"),
+						new JLabel(" "),
+						new Hyperlink(
+								"<html><a href=\"#\">JNBT was written by Graham Edgecombe</a></html>",
+								"http://jnbt.sf.net"),
+						new Hyperlink(
+								"<html><a href=\"#\">Available open-source under the BSD license</a></html>",
+								"http://jnbt.sourceforge.net/LICENSE.TXT"),
+						new JLabel(" "),
+						new JLabel(
+								"This product includes software developed by"),
+						new Hyperlink(
+								"<html><a href=\"#\">The Apache Software Foundation</a>.</html>",
+								"http://www.apache.org"),
+
+				};
+				String title = "About";
+				JOptionPane.showMessageDialog(GUI.this, message, title,
+						JOptionPane.INFORMATION_MESSAGE);
 			}
 
 		};

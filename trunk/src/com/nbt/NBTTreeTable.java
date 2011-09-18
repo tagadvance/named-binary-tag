@@ -30,7 +30,6 @@
 package com.nbt;
 
 import java.awt.Component;
-import java.awt.IllegalComponentStateException;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
