@@ -41,6 +41,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +84,7 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.tree.TreePath;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.ByteTag;
@@ -400,7 +403,47 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("delete");
+				int row = treeTable.getSelectedRow();
+				TreePath path = treeTable.getPathForRow(row);
+				Object last = path.getLastPathComponent();
+				TreePath parentPath = path.getParentPath();
+				Object parentLast = parentPath.getLastPathComponent();
+				NBTTreeTableModel model = treeTable.getTreeTableModel();
+				int index = model.getIndexOfChild(parentLast, last);
+				if (parentLast instanceof ByteArrayTag) {
+					ByteArrayTag baTag = (ByteArrayTag) parentLast;
+					byte[] value = baTag.getValue();
+					Byte[] bytes = ArrayUtils.toObject(value);
+					List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
+					index = (Integer) last;
+					list.remove(index);
+					bytes = new Byte[list.size()];
+					list.toArray(bytes);
+					value = ArrayUtils.toPrimitive(bytes);
+					baTag.setValue(value);
+				} else if (parentLast instanceof ListTag) {
+					ListTag listTag = (ListTag) parentLast;
+					List<Tag<?>> list = listTag.getValue();
+					if (index != -1)
+						list.remove(index);
+				} else if (parentLast instanceof CompoundTag) {
+					CompoundTag compoundTag = (CompoundTag) parentLast;
+					Map<String, Tag<?>> map = compoundTag.getValue();
+					int i = 0;
+					for (String key : map.keySet()) {
+						if (i++ == index - 1) {
+							map.remove(key);
+							break;
+						}
+					}
+				}
+
+				CompoundTag root = model.getRoot();
+				updateTreeTable(root);
+
+				path = treeTable.getPathForRow(row);
+				if (path != null)
+					treeTable.setRowSelectionInterval(row, row);
 			}
 
 		};
@@ -629,10 +672,13 @@ public class GUI extends JFrame {
 			return;
 
 		int row = treeTable.getSelectedRow();
+		deleteAction.setEnabled(row > 0);
+		if (row == -1)
+			return;
 		TreePath path = treeTable.getPathForRow(row);
 		Object last = path.getLastPathComponent();
 
-		if (last instanceof ByteArrayTag) {
+		if (last instanceof ByteArrayTag || last instanceof Integer) {
 			addByteAction.setEnabled(true);
 		} else if (last instanceof ListTag) {
 			ListTag list = (ListTag) last;
@@ -801,7 +847,7 @@ public class GUI extends JFrame {
 		toolBar.add(new ToolBarButton(saveAsAction));
 		toolBar.add(new ToolBarButton(refreshAction));
 		toolBar.addSeparator();
-		
+
 		toolBar.add(new ToolBarButton(deleteAction));
 		toolBar.addSeparator();
 
@@ -859,7 +905,7 @@ public class GUI extends JFrame {
 					return;
 				}
 				textFile.setText(file.getAbsolutePath());
-				
+
 				updateTreeTable(tag);
 
 				Cursor defaultCursor = Cursor.getDefaultCursor();
@@ -918,16 +964,32 @@ public class GUI extends JFrame {
 			return;
 		}
 
-		int row = treeTable.getSelectedRow();
-		if (row == -1) {
-			showErrorDialog("row == -1");
-			return;
-		}
+		Object scroll = tag;
 
+		int row = treeTable.getSelectedRow();
 		TreePath path = treeTable.getPathForRow(row);
 		Object last = path.getLastPathComponent();
 		if (last instanceof ByteArrayTag) {
-			showErrorDialog("add logic for variable length byte arrays");
+			ByteArrayTag baTag = (ByteArrayTag) last;
+			byte[] value = baTag.getValue();
+			byte[] newValue = new byte[value.length + 1];
+			System.arraycopy(value, 0, newValue, 0, value.length);
+			baTag.setValue(newValue);
+		} else if (last instanceof Integer) {
+			int index = (Integer) last + 1;
+			TreePath parentPath = path.getParentPath();
+			Object parentLast = parentPath.getLastPathComponent();
+			if (parentLast instanceof ByteArrayTag) {
+				ByteArrayTag baTag = (ByteArrayTag) parentLast;
+				byte[] value = baTag.getValue();
+				Byte[] bytes = ArrayUtils.toObject(value);
+				List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
+				list.add(index, (byte) 0);
+				bytes = list.toArray(bytes);
+				value = ArrayUtils.toPrimitive(bytes);
+				baTag.setValue(value);
+				scroll = index;
+			}
 		} else if (last instanceof ListTag) {
 			ListTag listTag = (ListTag) last;
 			List<Tag<?>> list = listTag.getValue();
@@ -945,7 +1007,7 @@ public class GUI extends JFrame {
 		CompoundTag root = model.getRoot();
 		updateTreeTable(root);
 
-		path = treeTable.getPathForNode(tag);
+		path = treeTable.getPathForNode(scroll);
 		row = treeTable.getRowForPath(path);
 		if (row != -1) {
 			treeTable.setRowSelectionInterval(row, row);
@@ -963,8 +1025,9 @@ public class GUI extends JFrame {
 			}
 
 		});
-
 		scrollPane.setViewportView(treeTable);
+
+		updateActions();
 	}
 
 	public void showErrorDialog(String message) {
