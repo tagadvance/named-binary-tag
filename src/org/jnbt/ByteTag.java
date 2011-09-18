@@ -40,6 +40,8 @@ package org.jnbt;
  * 
  */
 public class ByteTag extends Tag<Byte> {
+	
+	public static final String TAG_NAME = "TAG_Byte";
 
 	/**
 	 * Creates the tag.
@@ -55,7 +57,7 @@ public class ByteTag extends Tag<Byte> {
 
 	@Override
 	public String toString() {
-		return toString("TAG_Byte");
+		return toString(TAG_NAME);
 	}
 
 }

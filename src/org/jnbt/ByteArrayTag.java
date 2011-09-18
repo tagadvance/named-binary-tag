@@ -42,15 +42,13 @@ import com.tag.HexUtils;
  * 
  */
 public class ByteArrayTag extends Tag<byte[]> {
+	
+	public static final String TAG_NAME = "TAG_Byte_Array";
 
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The value.
-	 */
+	public ByteArrayTag(String name) {
+		super(name);
+	}
+	
 	public ByteArrayTag(String name, byte[] value) {
 		super(name, value);
 	}
@@ -62,7 +60,7 @@ public class ByteArrayTag extends Tag<byte[]> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("TAG_Byte_Array");
+		StringBuilder sb = new StringBuilder(TAG_NAME);
 		String name = getName();
 		if (!name.isEmpty())
 			sb.append("(\"").append(name).append("\")");
