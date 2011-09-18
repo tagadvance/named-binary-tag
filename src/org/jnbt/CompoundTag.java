@@ -43,7 +43,13 @@ import java.util.Map;
  * 
  */
 public class CompoundTag extends Tag<Map<String, Tag<?>>> {
-
+	
+	public static final String LABEL = "TAG_Compound";
+	
+	public CompoundTag(String name) {
+		super(name, null);
+	}
+	
 	public CompoundTag(String name, Map<String, Tag<?>> value) {
 		super(name, value);
 	}
@@ -55,7 +61,7 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("TAG_Compound");
+		StringBuilder sb = new StringBuilder(LABEL);
 		String name = getName();
 		if (!name.isEmpty())
 			sb.append("(\"").append(name).append("\")");

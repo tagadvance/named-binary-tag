@@ -46,7 +46,11 @@ public abstract class Tag<T> {
 	 */
 	private String name;
 	private T value;
-
+	
+	public Tag() {
+		
+	}
+	
 	/**
 	 * Creates the tag with the specified name.
 	 * 
@@ -54,7 +58,7 @@ public abstract class Tag<T> {
 	 *            The name.
 	 */
 	public Tag(String name) {
-		setName(name);
+		this(name, null);
 	}
 
 	/**
@@ -66,7 +70,7 @@ public abstract class Tag<T> {
 	 *            The Value.
 	 */
 	public Tag(String name, T value) {
-		this(name);
+		setName(name);
 		setValue(value);
 	}
 

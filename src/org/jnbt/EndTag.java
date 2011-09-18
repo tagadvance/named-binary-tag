@@ -55,7 +55,7 @@ public class EndTag extends Tag<Void> {
 
 	@Override
 	public void setValue(Void value) {
-		throw new IllegalStateException("wtf?");
+		// do nothing
 	}
 
 	@Override
