@@ -142,13 +142,19 @@ public class GUI extends JFrame {
 
 	protected Action helpAction;
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		//setPreferredLookAndFeel();
 		EventQueue.invokeLater(new Runnable() {
 
 			public void run() {
-				GUI frame = new GUI();
-				frame.setVisible(true);
+				GUI gui = new GUI();
+				gui.setVisible(true);
+				
+				if (args.length > 0) {
+					File file = new File(args[0]);
+					if (file.canRead())
+						gui.doImport(file);
+				}
 			}
 
 		});
