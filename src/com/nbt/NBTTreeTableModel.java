@@ -150,9 +150,6 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 				break;
 			case 1:
 				if (node instanceof Tag) {
-					System.out.println(node.getClass());
-					System.out.println(value.getClass());
-					@SuppressWarnings("rawtypes")
 					Tag tag = (Tag) node;
 					tag.setValue(value);
 				} else if (node instanceof Integer) {
