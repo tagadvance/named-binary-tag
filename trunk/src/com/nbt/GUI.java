@@ -29,7 +29,6 @@
 
 package com.nbt;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -84,7 +83,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jdesktop.swingx.autocomplete.ListAdaptor;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.ByteTag;
 import org.jnbt.CompoundTag;
@@ -119,6 +117,7 @@ public class GUI extends JFrame {
 	protected Action openAction;
 	protected Action saveAction;
 	protected Action saveAsAction;
+	protected Action refreshAction;
 	protected Action exitAction;
 
 	protected Action cutAction;
@@ -267,6 +266,24 @@ public class GUI extends JFrame {
 						doExport(file);
 						break;
 				}
+			}
+
+		};
+
+		refreshAction = new NBTAction("Refresh", "Refresh", "Refresh",
+				KeyEvent.VK_F5) {
+
+			{
+				putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"));
+			}
+
+			public void actionPerformed(ActionEvent e) {
+				String path = textFile.getText();
+				File file = new File(path);
+				if (file.canRead())
+					doImport(file);
+				else
+					showErrorDialog("The file could not be read.");
 			}
 
 		};
@@ -607,7 +624,7 @@ public class GUI extends JFrame {
 		actionMap.put(NBTConstants.TYPE_COMPOUND, addCompoundAction);
 		for (Action action : actionMap.values())
 			action.setEnabled(false);
-				
+
 		if (treeTable == null)
 			return;
 
@@ -619,7 +636,8 @@ public class GUI extends JFrame {
 			addByteAction.setEnabled(true);
 		} else if (last instanceof ListTag) {
 			ListTag list = (ListTag) last;
-			Class<? extends ListTag> c = list.getClass();
+			@SuppressWarnings("unchecked")
+			Class<Tag<?>> c = (Class<Tag<?>>) list.getType();
 			int type = NBTUtils.getTypeCode(c);
 			Action action = actionMap.get(type);
 			action.setEnabled(true);
@@ -743,6 +761,7 @@ public class GUI extends JFrame {
 		menuFile.add(new JMenuItem(openAction));
 		menuFile.add(new JMenuItem(saveAction));
 		menuFile.add(new JMenuItem(saveAsAction));
+		menuFile.add(new JMenuItem(refreshAction));
 		menuFile.add(new JMenuItem(exitAction));
 		menuBar.add(menuFile);
 
@@ -780,7 +799,9 @@ public class GUI extends JFrame {
 		toolBar.add(new ToolBarButton(openAction));
 		toolBar.add(new ToolBarButton(saveAction));
 		toolBar.add(new ToolBarButton(saveAsAction));
+		toolBar.add(new ToolBarButton(refreshAction));
 		toolBar.addSeparator();
+		
 		toolBar.add(new ToolBarButton(deleteAction));
 		toolBar.addSeparator();
 
@@ -942,6 +963,7 @@ public class GUI extends JFrame {
 			}
 
 		});
+
 		scrollPane.setViewportView(treeTable);
 	}
 
