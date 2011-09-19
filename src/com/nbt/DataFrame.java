@@ -33,13 +33,8 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Event;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,10 +51,9 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -68,22 +62,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingWorker;
-import javax.swing.UIManager;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.tree.TreePath;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jnbt.ByteArrayTag;
@@ -95,34 +82,28 @@ import org.jnbt.IntTag;
 import org.jnbt.ListTag;
 import org.jnbt.LongTag;
 import org.jnbt.NBTConstants;
-import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.jnbt.NBTUtils;
 import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.repo.Repository;
 import com.tag.Hyperlink;
 import com.tag.ImageFactory;
-import com.tag.WindowPreferences;
 
 @SuppressWarnings("serial")
-public class GUI extends JFrame {
+public class DataFrame extends JInternalFrame implements Repository {
 
 	public static final String KEY_FILE = "file";
 
+	private Repository repository;
+
 	private JPanel contentPane;
-	private JTextField textFile;
-	private JButton btnBrowse;
 	private NBTTreeTable treeTable;
 	private JScrollPane scrollPane;
 
-	protected Action newAction;
-	protected Action openAction;
 	protected Action saveAction;
-	protected Action saveAsAction;
 	protected Action refreshAction;
-	protected Action exitAction;
 
 	protected Action cutAction;
 	protected Action copyAction;
@@ -142,107 +123,27 @@ public class GUI extends JFrame {
 
 	protected Action helpAction;
 
-	public static void main(final String[] args) {
-		//setPreferredLookAndFeel();
-		EventQueue.invokeLater(new Runnable() {
+	public DataFrame(String title, Repository repo) {
+		super(title, true, false, true, true);
+		setRepository(repo);
 
-			public void run() {
-				GUI gui = new GUI();
-				gui.setVisible(true);
-				
-				if (args.length > 0) {
-					File file = new File(args[0]);
-					if (file.canRead())
-						gui.doImport(file);
-				}
-			}
-
-		});
-	}
-
-	@SuppressWarnings("unused")
-	private static void setPreferredLookAndFeel() {
-		String[] lafs = {
-				"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
-				UIManager.getSystemLookAndFeelClassName(),
-				UIManager.getCrossPlatformLookAndFeelClassName()
-		};
-		for (String laf : lafs) {
-			try {
-				UIManager.setLookAndFeel(laf);
-				break;
-			} catch (Exception e) {
-				//e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Create the frame.
-	 */
-	public GUI() {
 		createActions();
 		initComponents();
 
-		restoreFile();
 		updateActions();
+	}
 
-		WindowPreferences prefs = new WindowPreferences(this, getTitle());
-		prefs.restoreAll();
-		prefs.install();
+	public Repository getRepository() {
+		return repository;
+	}
+
+	public void setRepository(Repository repository) {
+		if (repository == null)
+			throw new IllegalArgumentException("repository must not be null");
+		this.repository = repository;
 	}
 
 	private void createActions() {
-		newAction = new NBTAction("New", "New", "New", KeyEvent.VK_N) {
-
-			{
-				putValue(ACCELERATOR_KEY,
-						KeyStroke.getKeyStroke('N', Event.CTRL_MASK));
-			}
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				updateTreeTable(new CompoundTag(""));
-			}
-
-		};
-
-		openAction = new NBTAction("Open File...", "Open", "Open File...",
-				KeyEvent.VK_O) {
-
-			{
-				putValue(ACCELERATOR_KEY,
-						KeyStroke.getKeyStroke('O', Event.CTRL_MASK));
-			}
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser();
-				fc.setAcceptAllFileFilterUsed(false);
-				String description = "named binary tag";
-				FileFilter filter = new FileNameExtensionFilter(description,
-						"mcr", "dat", "dat_old");
-				fc.setFileFilter(filter);
-				Preferences prefs = getPreferences();
-				String exportFile = prefs.get(KEY_FILE, null);
-				if (exportFile == null) {
-					File cwd = new File(".");
-					fc.setCurrentDirectory(cwd);
-				} else {
-					File selectedFile = new File(exportFile);
-					fc.setSelectedFile(selectedFile);
-				}
-				switch (fc.showOpenDialog(GUI.this)) {
-					case JFileChooser.APPROVE_OPTION:
-						File file = fc.getSelectedFile();
-						prefs.put(KEY_FILE, file.getAbsolutePath());
-						doImport(file);
-						break;
-				}
-			}
-
-		};
-
 		saveAction = new NBTAction("Save", "Save", "Save", KeyEvent.VK_S) {
 
 			{
@@ -252,38 +153,7 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String path = textFile.getText();
-				File file = new File(path);
-				if (file.canWrite()) {
-					doExport(file);
-				} else {
-					saveAsAction.actionPerformed(e);
-				}
-			}
-
-		};
-
-		saveAsAction = new NBTAction("Save As...", "SaveAs", "Save As...",
-				KeyEvent.VK_UNDEFINED) {
-
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser();
-				Preferences prefs = getPreferences();
-				String exportFile = prefs.get(KEY_FILE, null);
-				if (exportFile == null) {
-					File cwd = new File(".");
-					fc.setCurrentDirectory(cwd);
-				} else {
-					File selectedFile = new File(exportFile);
-					fc.setSelectedFile(selectedFile);
-				}
-				switch (fc.showSaveDialog(GUI.this)) {
-					case JFileChooser.APPROVE_OPTION:
-						File file = fc.getSelectedFile();
-						prefs.put(KEY_FILE, file.getAbsolutePath());
-						doExport(file);
-						break;
-				}
+				doExport();
 			}
 
 		};
@@ -296,22 +166,8 @@ public class GUI extends JFrame {
 			}
 
 			public void actionPerformed(ActionEvent e) {
-				String path = textFile.getText();
-				File file = new File(path);
-				if (file.canRead())
-					doImport(file);
-				else
-					showErrorDialog("The file could not be read.");
-			}
-
-		};
-
-		exitAction = new NBTAction("Exit", "Exit", KeyEvent.VK_ESCAPE) {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
 				// TODO: this should check to see if any changes have been made before exiting
-				System.exit(0);
+				doImport();
 			}
 
 		};
@@ -623,8 +479,8 @@ public class GUI extends JFrame {
 						new JLabel("Please select a type."), comboBox
 				};
 				String title = "Title goes here";
-				int result = JOptionPane.showOptionDialog(GUI.this, message,
-						title, JOptionPane.OK_CANCEL_OPTION,
+				int result = JOptionPane.showOptionDialog(DataFrame.this,
+						message, title, JOptionPane.OK_CANCEL_OPTION,
 						JOptionPane.QUESTION_MESSAGE, null, null, null);
 				switch (result) {
 					case JOptionPane.OK_OPTION:
@@ -687,7 +543,7 @@ public class GUI extends JFrame {
 
 				};
 				String title = "About";
-				JOptionPane.showMessageDialog(GUI.this, message, title,
+				JOptionPane.showMessageDialog(DataFrame.this, message, title,
 						JOptionPane.INFORMATION_MESSAGE);
 			}
 
@@ -736,7 +592,7 @@ public class GUI extends JFrame {
 	}
 
 	private void initComponents() {
-		setTitle("NBT Pro");
+		setTitle("Data Frame");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = createMenuBar();
@@ -746,21 +602,6 @@ public class GUI extends JFrame {
 		contentPane = new JPanel();
 		setContentPane(contentPane);
 
-		JPanel browsePanel = new JPanel();
-		Border border = new TitledBorder(null, "Location");
-		browsePanel.setBorder(border);
-
-		textFile = new JTextField();
-		textFile.setEditable(false);
-		btnBrowse = new JButton("Browse");
-		btnBrowse.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				openAction.actionPerformed(e);
-			}
-
-		});
 		scrollPane = new JScrollPane();
 
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
@@ -777,12 +618,6 @@ public class GUI extends JFrame {
 														.createParallelGroup(
 																Alignment.TRAILING)
 														.addComponent(
-																browsePanel,
-																Alignment.LEADING,
-																GroupLayout.DEFAULT_SIZE,
-																GroupLayout.PREFERRED_SIZE,
-																Short.MAX_VALUE)
-														.addComponent(
 																scrollPane,
 																Alignment.LEADING,
 																GroupLayout.DEFAULT_SIZE,
@@ -795,44 +630,14 @@ public class GUI extends JFrame {
 				Alignment.LEADING).addGroup(
 				gl_contentPane
 						.createSequentialGroup()
-						.addComponent(toolBar)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(browsePanel)
+						.addComponent(toolBar, GroupLayout.PREFERRED_SIZE,
+								GroupLayout.PREFERRED_SIZE,
+								GroupLayout.PREFERRED_SIZE)
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 						.addContainerGap()));
 
-		GroupLayout gl_browsePanel = new GroupLayout(browsePanel);
-		gl_browsePanel.setHorizontalGroup(gl_browsePanel.createParallelGroup(
-				Alignment.LEADING).addGroup(
-				Alignment.TRAILING,
-				gl_browsePanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addComponent(textFile, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(btnBrowse).addContainerGap()));
-		gl_browsePanel
-				.setVerticalGroup(gl_browsePanel
-						.createParallelGroup(Alignment.LEADING)
-						.addGroup(
-								gl_browsePanel
-										.createSequentialGroup()
-										//.addContainerGap()
-										.addGroup(
-												gl_browsePanel
-														.createParallelGroup(
-																Alignment.BASELINE)
-														.addComponent(
-																textFile,
-																GroupLayout.DEFAULT_SIZE,
-																GroupLayout.PREFERRED_SIZE,
-																Short.MAX_VALUE)
-														.addComponent(btnBrowse))
-										.addContainerGap()));
-		browsePanel.setLayout(gl_browsePanel);
 		contentPane.setLayout(gl_contentPane);
 
 		int width = 440, height = 400;
@@ -845,12 +650,8 @@ public class GUI extends JFrame {
 		JMenuBar menuBar = new JMenuBar();
 
 		JMenu menuFile = new JMenu("File");
-		menuFile.add(new JMenuItem(newAction));
-		menuFile.add(new JMenuItem(openAction));
 		menuFile.add(new JMenuItem(saveAction));
-		menuFile.add(new JMenuItem(saveAsAction));
 		menuFile.add(new JMenuItem(refreshAction));
-		menuFile.add(new JMenuItem(exitAction));
 		menuBar.add(menuFile);
 
 		JMenu menuEdit = new JMenu("Edit");
@@ -883,10 +684,7 @@ public class GUI extends JFrame {
 		JToolBar toolBar = new JToolBar();
 		toolBar.setFloatable(false);
 
-		toolBar.add(new ToolBarButton(newAction));
-		toolBar.add(new ToolBarButton(openAction));
 		toolBar.add(new ToolBarButton(saveAction));
-		toolBar.add(new ToolBarButton(saveAsAction));
 		toolBar.add(new ToolBarButton(refreshAction));
 		toolBar.addSeparator();
 
@@ -907,35 +705,20 @@ public class GUI extends JFrame {
 		return toolBar;
 	}
 
-	private void restoreFile() {
-		Preferences prefs = getPreferences();
-		String pathname = prefs.get(KEY_FILE, null);
-		if (pathname != null) {
-			File file = new File(pathname);
-			doImport(file);
-		}
-	}
-
-	public void doImport(final File file) {
+	public void doImport() {
 		Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 		setCursor(waitCursor);
 
-		new SwingWorker<CompoundTag, Void>() {
+		new SwingWorker<Tag<?>, Void>() {
 
 			@Override
-			protected CompoundTag doInBackground() throws Exception {
-				NBTInputStream ns = null;
-				try {
-					ns = new NBTInputStream(new FileInputStream(file));
-					return (CompoundTag) ns.readTag();
-				} finally {
-					IOUtils.closeQuietly(ns);
-				}
+			protected Tag<?> doInBackground() throws Exception {
+				return repository.load();
 			}
 
 			@Override
 			protected void done() {
-				CompoundTag tag = null;
+				Tag<?> tag = null;
 				try {
 					tag = get();
 				} catch (InterruptedException e) {
@@ -946,9 +729,11 @@ public class GUI extends JFrame {
 					showErrorDialog(cause.getMessage());
 					return;
 				}
-				textFile.setText(file.getAbsolutePath());
 
-				updateTreeTable(tag);
+				if (tag instanceof CompoundTag) {
+					CompoundTag compoundTag = (CompoundTag) tag;
+					updateTreeTable(compoundTag);
+				}
 
 				Cursor defaultCursor = Cursor.getDefaultCursor();
 				setCursor(defaultCursor);
@@ -957,9 +742,7 @@ public class GUI extends JFrame {
 		}.execute();
 	}
 
-	public void doExport(final File file) {
-		textFile.setText(file.getAbsolutePath());
-
+	public void doExport() {
 		Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 		setCursor(waitCursor);
 
@@ -970,13 +753,7 @@ public class GUI extends JFrame {
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				NBTOutputStream ns = null;
-				try {
-					ns = new NBTOutputStream(new FileOutputStream(file));
-					ns.writeTag(tag);
-				} finally {
-					IOUtils.closeQuietly(ns);
-				}
+				repository.save(tag);
 				return null;
 			}
 
@@ -998,6 +775,29 @@ public class GUI extends JFrame {
 			}
 
 		}.execute();
+	}
+
+	public void doLoad() throws IOException {
+		Tag<?> tag = load();
+		updateTreeTable(tag);
+	}
+	
+	@Override
+	public Tag<?> load() throws IOException {
+		Repository repo = getRepository();
+		return repo.load();
+	}
+
+	public void doSave() throws IOException {
+		NBTTreeTableModel model = treeTable.getTreeTableModel();
+		CompoundTag tag = model.getRoot();
+		save(tag);
+	}
+
+	@Override
+	public void save(Tag<?> tag) throws IOException {
+		Repository repo = getRepository();
+		repo.save(tag);
 	}
 
 	public void addTag(Tag<?> tag) {
@@ -1057,7 +857,7 @@ public class GUI extends JFrame {
 		}
 	}
 
-	protected void updateTreeTable(CompoundTag tag) {
+	protected void updateTreeTable(Tag<?> tag) {
 		treeTable = new NBTTreeTable(tag);
 		treeTable.addTreeSelectionListener(new TreeSelectionListener() {
 
@@ -1074,7 +874,7 @@ public class GUI extends JFrame {
 
 	public void showErrorDialog(String message) {
 		String title = "Error";
-		JOptionPane.showMessageDialog(GUI.this, message, title,
+		JOptionPane.showMessageDialog(DataFrame.this, message, title,
 				JOptionPane.ERROR_MESSAGE);
 	}
 

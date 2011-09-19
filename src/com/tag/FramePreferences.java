@@ -38,49 +38,154 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.beans.PropertyVetoException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
-public class WindowPreferences {
+public class FramePreferences {
 
-	static final String KEY_EXTENDED_STATE = "windowExtendedState";
-	static final String KEY_WIDTH = "windowDimensionWidth";
-	static final String KEY_HEIGHT = "windowDimensionHeight";
-	static final String KEY_X = "windowLocationX";
-	static final String KEY_Y = "windowLocationY";
+	static final String KEY_EXTENDED_STATE = "frameExtendedState";
+	static final String KEY_WIDTH = "frameDimensionWidth";
+	static final String KEY_HEIGHT = "frameDimensionHeight";
+	static final String KEY_X = "frameLocationX";
+	static final String KEY_Y = "frameLocationY";
 
-	private Window window;
+	private Frame frame;
 	private String pathName;
 	private WindowStateListener windowStateListener;
 	private ComponentListener componentListener;
 
-	public WindowPreferences(Window window) {
-		this(window, null);
+	public FramePreferences(Frame frame) {
+		this(frame, null);
 	}
 
-	public WindowPreferences(Window window, String pathName) {
-		setWindow(window);
+	public FramePreferences(Frame frame, String pathName) {
+		setFrame(frame);
 		setPathName(pathName);
 	}
 
-	public Window getWindow() {
-		return window;
+	@SuppressWarnings("serial")
+	public FramePreferences(final JInternalFrame frame, String pathName) {
+		setFrame(new Frame() {
+			
+			@Override
+			public synchronized int getExtendedState() {
+				if (frame.isMaximum()) {
+					return Frame.MAXIMIZED_BOTH;
+				} else if (frame.isIcon()) {
+					return Frame.ICONIFIED;
+				} else {
+					return Frame.NORMAL;
+				}
+			}
+
+			@Override
+			public synchronized void setExtendedState(int state) {
+				try {
+					switch (state) {
+						case Frame.MAXIMIZED_HORIZ:
+						case Frame.MAXIMIZED_VERT:
+						case Frame.MAXIMIZED_BOTH:
+							frame.setMaximum(true);
+							break;
+						case Frame.ICONIFIED:
+							frame.setIcon(true);
+							break;
+						case Frame.NORMAL:
+							frame.setIcon(false);
+							frame.setMaximum(false);
+							break;
+					}
+				} catch (PropertyVetoException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public synchronized void addWindowStateListener(
+					final WindowStateListener l) {
+				final Frame source = this;
+				frame.addInternalFrameListener(new InternalFrameAdapter() {
+
+					@Override
+					public void internalFrameIconified(InternalFrameEvent e) {
+						l.windowStateChanged(new WindowEvent(source,
+								WindowEvent.WINDOW_ICONIFIED));
+					}
+
+					@Override
+					public void internalFrameDeiconified(InternalFrameEvent e) {
+						l.windowStateChanged(new WindowEvent(source,
+								WindowEvent.WINDOW_DEICONIFIED));
+					}
+
+				});
+			}
+
+			@Override
+			public synchronized void removeWindowStateListener(
+					WindowStateListener l) {
+				super.removeWindowStateListener(l);
+			}
+
+			@Override
+			public GraphicsConfiguration getGraphicsConfiguration() {
+				return frame.getGraphicsConfiguration();
+			}
+			
+			public Point getLocation() {
+				return frame.getLocation();
+			}
+			
+			@Override
+			public void setLocation(Point p) {
+				frame.setLocation(p);
+			}
+
+			@Override
+			public Dimension getSize() {
+				return frame.getSize();
+			}
+			
+			@Override
+			public void setSize(Dimension size) {
+				frame.setSize(size);
+			}
+			
+			@Override
+			public synchronized void addComponentListener(ComponentListener l) {
+				frame.addComponentListener(l);
+			}
+
+			@Override
+			public synchronized void removeComponentListener(ComponentListener l) {
+				frame.addComponentListener(l);
+			}
+
+		});
+		setPathName(pathName);
 	}
 
-	private void setWindow(Window window) {
-		if (window == null)
-			throw new IllegalArgumentException("window must not be null");
-		this.window = window;
+	public Frame getFrame() {
+		return frame;
+	}
+
+	private void setFrame(Frame frame) {
+		if (frame == null)
+			throw new IllegalArgumentException("frame must not be null");
+		this.frame = frame;
 	}
 
 	public String getPathName() {
@@ -100,7 +205,7 @@ public class WindowPreferences {
 	public void restoreSize() {
 		Dimension size = getPreferredSize();
 		if (size != null)
-			window.setSize(size);
+			frame.setSize(size);
 	}
 
 	public Dimension getPreferredSize() {
@@ -112,14 +217,14 @@ public class WindowPreferences {
 	}
 
 	public void restoreLocation() {
-		Dimension size = window.getSize();
+		Dimension size = frame.getSize();
 		Point location = getPreferredLocation();
 		if (isOffScreen(size, location)) {
-			GraphicsConfiguration gc = window.getGraphicsConfiguration();
+			GraphicsConfiguration gc = frame.getGraphicsConfiguration();
 			Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
 			location = new Point(insets.left, insets.top);
 		}
-		window.setLocation(location);
+		frame.setLocation(location);
 	}
 
 	public Point getPreferredLocation() {
@@ -162,11 +267,8 @@ public class WindowPreferences {
 	}
 
 	public void restoreExtendedState() {
-		if (window instanceof Frame) {
-			Frame frame = (Frame) window;
-			int state = getPreferredExtendedState();
-			frame.setExtendedState(state);
-		}
+		int state = getPreferredExtendedState();
+		frame.setExtendedState(state);
 	}
 
 	public void install() {
@@ -177,23 +279,23 @@ public class WindowPreferences {
 				if (source instanceof JFrame) {
 					JFrame frame = (JFrame) source;
 					int extendedState = frame.getExtendedState();
-					if (extendedState == JFrame.ICONIFIED) {
+					if (extendedState == JFrame.ICONIFIED)
 						return;
-					}
+
 					Preferences prefs = getPreferences();
 					prefs.putInt(KEY_EXTENDED_STATE, extendedState);
 				}
 			}
 
 		};
-		window.addWindowStateListener(windowStateListener);
+		frame.addWindowStateListener(windowStateListener);
 
 		componentListener = new ComponentAdapter() {
 
 			@Override
 			public void componentResized(ComponentEvent e) {
 				Preferences prefs = getPreferences();
-				Dimension size = window.getSize();
+				Dimension size = frame.getSize();
 				prefs.putInt(KEY_WIDTH, size.width);
 				prefs.putInt(KEY_HEIGHT, size.height);
 			}
@@ -201,18 +303,18 @@ public class WindowPreferences {
 			@Override
 			public void componentMoved(ComponentEvent e) {
 				Preferences prefs = getPreferences();
-				Point location = window.getLocation();
+				Point location = frame.getLocation();
 				prefs.putInt(KEY_X, location.x);
 				prefs.putInt(KEY_Y, location.y);
 			}
 
 		};
-		window.addComponentListener(componentListener);
+		frame.addComponentListener(componentListener);
 	}
 
 	public void uninstall() {
-		window.removeWindowStateListener(windowStateListener);
-		window.removeComponentListener(componentListener);
+		frame.removeWindowStateListener(windowStateListener);
+		frame.removeComponentListener(componentListener);
 	}
 
 	public boolean isFirst() {
