@@ -48,7 +48,7 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 
 	protected NBTTreeTable parent;
 
-	public NBTTreeTableModel(CompoundTag root) {
+	public NBTTreeTableModel(Tag<?> root) {
 		super(root);
 	}
 

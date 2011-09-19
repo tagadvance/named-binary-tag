@@ -70,7 +70,7 @@ import com.tag.ImageFactory;
 @SuppressWarnings("serial")
 public class NBTTreeTable extends JXTreeTable {
 
-	public NBTTreeTable(CompoundTag tag) {
+	public NBTTreeTable(Tag<?> tag) {
 		super(new NBTTreeTableModel(tag));
 		getTreeTableModel().setParent(this);
 		init();
