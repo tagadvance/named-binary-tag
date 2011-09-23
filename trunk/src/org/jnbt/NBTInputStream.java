@@ -32,6 +32,7 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -75,7 +76,16 @@ public class NBTInputStream implements Closeable {
 	 *             if an I/O error occurs.
 	 */
 	public NBTInputStream(InputStream is) throws IOException {
-		this.is = new DataInputStream(new GZIPInputStream(is));
+		// TODO: do this for output stream too
+		if (!is.markSupported())
+			is = new BufferedInputStream(is);
+		is.mark(10); //GZIP header
+		try {
+			this.is = new DataInputStream(new GZIPInputStream(is));
+		} catch (IOException e) {
+			is.reset();
+			this.is = new DataInputStream(is);
+		}
 	}
 
 	/**

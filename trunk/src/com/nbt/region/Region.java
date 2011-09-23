@@ -27,31 +27,16 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.region;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 
-import com.nbt.region.RegionFile;
-
-public class RegionRepository extends AbstractRepository {
-
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
-
-	}
-
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
-	}
-
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
-	}
-
+public interface Region {
+	
+	long lastModified();
+	
+	List<Chunk> getChunks();
+	
+	Chunk getChunk(int x, int z);
+	
 }

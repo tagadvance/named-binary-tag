@@ -29,16 +29,12 @@
 
 package com.nbt;
 
-import java.util.List;
-import java.util.Map;
+import java.awt.Point;
 
 import javax.swing.tree.TreePath;
 
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 import org.jnbt.ByteArrayTag;
-import org.jnbt.CompoundTag;
-import org.jnbt.ListTag;
-import org.jnbt.Tag;
 
 public class NBTTreeTableModel extends AbstractTreeTableModel {
 
@@ -48,7 +44,7 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 
 	protected NBTTreeTable parent;
 
-	public NBTTreeTableModel(Tag<?> root) {
+	public NBTTreeTableModel(Object root) {
 		super(root);
 	}
 
@@ -63,11 +59,6 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 	}
 
 	@Override
-	public CompoundTag getRoot() {
-		return (CompoundTag) root;
-	}
-
-	@Override
 	public int getColumnCount() {
 		return columnNames.length;
 	}
@@ -79,94 +70,30 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 
 	@Override
 	public boolean isCellEditable(Object node, int column) {
-		switch (column) {
-			case 0:
-				return (node instanceof Tag);
-			case 1:
-				return (node instanceof Tag || node instanceof Integer)
-						&& !(node instanceof ByteArrayTag
-								|| node instanceof ListTag || node instanceof CompoundTag);
+		if (node instanceof Node) {
+			Node n = (Node) node;
+			return n.isCellEditable(column);
 		}
+
 		return super.isCellEditable(node, column);
 	}
 
 	@Override
 	public Object getValueAt(Object node, int column) {
-		if (node instanceof Tag) {
-			Tag<?> tag = (Tag<?>) node;
-			switch (column) {
-				case 0:
-					return tag.getName();
-				case 1:
-					Object value = tag.getValue();
-					if (value instanceof byte[]) {
-						byte[] bytes = (byte[]) value;
-						return bytes.length + " bytes";
-					} else if (value instanceof List) {
-						List list = (List) value;
-						int size = list.size();
-						return size
-								+ (size != 0 && size > 1 ? " entries"
-										: " entry");
-					} else if (value instanceof Map) {
-						@SuppressWarnings("rawtypes")
-						Map map = (Map) value;
-						int size = map.size();
-						return size
-								+ (size != 0 && size > 1 ? " entries"
-										: " entry");
-					} else {
-						return value;
-					}
-			}
-		} else if (node instanceof Integer) {
-			int index = (Integer) node;
-			NBTTreeTable parent = getParent();
-			TreePath path = parent.getPathForNode(node);
-			path = path.getParentPath();
-			Object parentNode = path.getLastPathComponent();
-			switch (column) {
-				case 1:
-					if (parentNode instanceof ByteArrayTag) {
-						ByteArrayTag tag = (ByteArrayTag) parentNode;
-						byte[] bytes = tag.getValue();
-						return bytes[index];
-					}
-			}
+		if (node instanceof Node) {
+			Node n = (Node) node;
+			return n.getValueAt(column);
 		}
+
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setValueAt(Object value, Object node, int column) {
-		switch (column) {
-			case 0:
-				if (node instanceof Tag) {
-					Tag<?> tag = (Tag<?>) node;
-					String name = (value == null ? null : value.toString());
-					tag.setName(name);
-				}
-				break;
-			case 1:
-				if (node instanceof Tag) {
-					Tag tag = (Tag) node;
-					tag.setValue(value);
-				} else if (node instanceof Integer) {
-					int index = (Integer) node;
-					NBTTreeTable parent = getParent();
-					TreePath path = parent.getPathForNode(node);
-					path = path.getParentPath();
-					Object parentNode = path.getLastPathComponent();
-					if (parentNode instanceof ByteArrayTag) {
-						ByteArrayTag tag = (ByteArrayTag) parentNode;
-						byte[] bytes = tag.getValue();
-						if (value instanceof Number) {
-							Number n = (Number) value;
-							bytes[index] = n.byteValue();
-						}
-					}
-				}
+		if (node instanceof Node) {
+			Node n = (Node) node;
+			n.setValueAt(value, column);
+			return;
 		}
 
 		super.setValueAt(value, node, column);
@@ -174,66 +101,27 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 
 	@Override
 	public Object getChild(Object parent, int index) {
-		if (parent instanceof ByteArrayTag) {
-			return index;
-		} else if (parent instanceof ListTag) {
-			ListTag tag = (ListTag) parent;
-			List<?> list = tag.getValue();
-			return list.get(index);
-		} else if (parent instanceof CompoundTag) {
-			CompoundTag tag = (CompoundTag) parent;
-			Map<String, Tag<?>> map = tag.getValue();
-			return map.values().toArray()[index];
+		if (parent instanceof Branch) {
+			Branch branch = (Branch) parent;
+			return branch.getChild(index);
 		}
 		return null;
 	}
 
 	@Override
 	public int getChildCount(Object parent) {
-		if (parent instanceof ByteArrayTag) {
-			ByteArrayTag tag = (ByteArrayTag) parent;
-			byte[] bytes = tag.getValue();
-			return bytes.length;
-		} else if (parent instanceof ListTag) {
-			ListTag tag = (ListTag) parent;
-			List<?> list = tag.getValue();
-			return list.size();
-		} else if (parent instanceof CompoundTag) {
-			CompoundTag tag = (CompoundTag) parent;
-			Map<String, Tag<?>> map = tag.getValue();
-			return map.size();
+		if (parent instanceof Branch) {
+			Branch branch = (Branch) parent;
+			return branch.getChildCount();
 		}
 		return 0;
 	}
 
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
-		int i = 0;
-		if (parent instanceof ByteArrayTag) {
-			ByteArrayTag tag = (ByteArrayTag) parent;
-			byte[] bytes = tag.getValue();
-			for (byte b : bytes) {
-				i++;
-				Byte oByte = Byte.valueOf(b);
-				if (oByte.equals(child))
-					return i;
-			}
-		} else if (parent instanceof ListTag) {
-			ListTag tag = (ListTag) parent;
-			List<?> list = tag.getValue();
-			for (Object o : list) {
-				i++;
-				if (o.equals(child))
-					return i;
-			}
-		} else if (parent instanceof CompoundTag) {
-			CompoundTag tag = (CompoundTag) parent;
-			Map<String, Tag<?>> map = tag.getValue();
-			for (Tag<?> t : map.values()) {
-				i++;
-				if (t.equals(child))
-					return i;
-			}
+		if (parent instanceof Branch) {
+			Branch branch = (Branch) parent;
+			return branch.getIndexOfChild(child);
 		}
 		return -1;
 	}

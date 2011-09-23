@@ -27,31 +27,43 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.region;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class ChunkLocation {
 
-import com.nbt.region.RegionFile;
+	public static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
 
-public class RegionRepository extends AbstractRepository {
+	private int x, z;
 
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
-
+	public ChunkLocation() {
+		this(MIN_X, MIN_Z);
 	}
 
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
+	public ChunkLocation(int x, int z) {
+		setX(x);
+		setZ(z);
 	}
 
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
+	public int getX() {
+		return x;
+	}
+
+	public void setX(int x) {
+		if (x < MIN_X || x > MAX_X)
+			throw new IllegalArgumentException(MAX_X + " >= " + x + " >= "
+					+ MIN_X);
+		this.x = x;
+	}
+
+	public int getZ() {
+		return z;
+	}
+
+	public void setZ(int z) {
+		if (z < MIN_Z || z > MAX_Z)
+			throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
+					+ MIN_Z);
+		this.z = z;
 	}
 
 }

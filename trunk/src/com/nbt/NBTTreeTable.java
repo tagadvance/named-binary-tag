@@ -70,8 +70,8 @@ import com.tag.ImageFactory;
 @SuppressWarnings("serial")
 public class NBTTreeTable extends JXTreeTable {
 
-	public NBTTreeTable(Tag<?> tag) {
-		super(new NBTTreeTableModel(tag));
+	public NBTTreeTable(Object root) {
+		super(new NBTTreeTableModel(root));
 		getTreeTableModel().setParent(this);
 		init();
 	}
@@ -122,16 +122,17 @@ public class NBTTreeTable extends JXTreeTable {
 				super.getTreeCellRendererComponent(tree, value, sel, expanded,
 						leaf, row, hasFocus);
 
-				if (value instanceof Tag) {
-					Tag<?> tag = (Tag<?>) value;
-					String name = tag.getName();
-					setText(name);
+				if (value instanceof Node) {
+					Node node = (Node) value;
+					Object o = node.getValueAt(Node.COLUMN_KEY);
+					String text = (o == null ? null : o.toString());
+					setText(text);
 				}
 
 				final int size = 16;
 				ImageFactory iconFactory = new ImageFactory();
 				Image image = null;
-				if (value instanceof Integer) {
+				if (value instanceof ByteWrapper) {
 					image = iconFactory.createImage(NBTConstants.TYPE_BYTE,
 							size);
 				} else if (value instanceof ByteTag) {
@@ -175,8 +176,6 @@ public class NBTTreeTable extends JXTreeTable {
 			}
 
 		});
-
-		expandAll();
 	}
 
 	public NBTTreeTableModel getTreeTableModel() {
@@ -185,7 +184,7 @@ public class NBTTreeTable extends JXTreeTable {
 
 	public TreePath getPathForNode(Object node) {
 		NBTTreeTableModel treeTableModel = getTreeTableModel();
-		Tag<?> root = treeTableModel.getRoot();
+		Object root = treeTableModel.getRoot();
 		TreePath path = new TreePath(root);
 		return getPathForNode(path, node);
 	}

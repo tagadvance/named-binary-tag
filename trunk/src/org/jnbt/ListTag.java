@@ -35,6 +35,8 @@ package org.jnbt;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.nbt.Branch;
+
 /**
  * The <code>TAG_List</code> tag.
  * 
@@ -42,7 +44,7 @@ import java.util.List;
  * @author Taggart Spilman
  * 
  */
-public class ListTag extends Tag<List<Tag<?>>> {
+public class ListTag extends Tag<List<Tag<?>>> implements Branch {
 
 	/**
 	 * The type.
@@ -82,6 +84,48 @@ public class ListTag extends Tag<List<Tag<?>>> {
 	@Override
 	protected List<Tag<?>> createDefaultValue() {
 		return new ArrayList<Tag<?>>();
+	}
+
+	@Override
+	public boolean isCellEditable(int column) {
+		return false;
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+		switch (column) {
+			case COLUMN_VALUE:
+				List<Tag<?>> list = getValue();
+				int size = list.size();
+				return size + (size != 0 && size > 1 ? " entries" : " entry");
+			default:
+				return super.getValueAt(column);
+		}
+	}
+
+	@Override
+	public Object getChild(int index) {
+		List<?> list = getValue();
+		return list.get(index);
+	}
+
+	@Override
+	public int getChildCount() {
+		List<?> list = getValue();
+		return list.size();
+	}
+
+	@Override
+	public int getIndexOfChild(Object child) {
+		if (child != null) {
+			List<Tag<?>> list = getValue();
+			for (int i = 0; i < list.size(); i++) {
+				Tag<?> tag = list.get(i);
+				if (child.equals(tag))
+					return i;
+			}
+		}
+		return -1;
 	}
 
 	@Override

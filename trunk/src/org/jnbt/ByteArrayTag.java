@@ -1,5 +1,7 @@
 package org.jnbt;
 
+import com.nbt.Branch;
+import com.nbt.ByteWrapper;
 import com.tag.HexUtils;
 
 /*
@@ -41,14 +43,14 @@ import com.tag.HexUtils;
  * @author Taggart Spilman
  * 
  */
-public class ByteArrayTag extends Tag<byte[]> {
-	
+public class ByteArrayTag extends Tag<byte[]> implements Branch {
+
 	public static final String TAG_NAME = "TAG_Byte_Array";
 
 	public ByteArrayTag(String name) {
 		super(name);
 	}
-	
+
 	public ByteArrayTag(String name, byte[] value) {
 		super(name, value);
 	}
@@ -56,6 +58,42 @@ public class ByteArrayTag extends Tag<byte[]> {
 	@Override
 	protected byte[] createDefaultValue() {
 		return new byte[] {};
+	}
+
+	@Override
+	public boolean isCellEditable(int column) {
+		return false;
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+		switch (column) {
+			case COLUMN_VALUE:
+				byte[] bytes = getValue();
+				return bytes.length + " bytes";
+			default:
+				return super.getValueAt(column);
+		}
+	}
+
+	@Override
+	public Object getChild(int index) {
+		byte[] value = getValue();
+		return new ByteWrapper(value, index);
+	}
+
+	@Override
+	public int getChildCount() {
+		byte[] value = getValue();
+		return value.length;
+	}
+
+	@Override
+	public int getIndexOfChild(Object child) {
+		if (child instanceof Integer) {
+			return (Integer) child;
+		}
+		return -1;
 	}
 
 	@Override
