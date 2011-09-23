@@ -27,31 +27,16 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public interface Node {
 
-import com.nbt.region.RegionFile;
+	public static final int COLUMN_KEY = 0, COLUMN_VALUE = 1;
 
-public class RegionRepository extends AbstractRepository {
+	boolean isCellEditable(int column);
 
-	private RegionFile regionFile;
+	public Object getValueAt(int column);
 
-	private RegionRepository(RegionFile file) {
-		super();
-
-	}
-
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
-	}
-
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
-	}
+	public void setValueAt(Object value, int column);
 
 }

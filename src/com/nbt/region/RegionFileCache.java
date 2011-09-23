@@ -1,4 +1,4 @@
-package com.nbt;
+package com.nbt.region;
 
 /*
  * 2011 January 5

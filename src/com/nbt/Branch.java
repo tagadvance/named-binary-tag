@@ -27,31 +27,14 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public interface Branch {
 
-import com.nbt.region.RegionFile;
+	public Object getChild(int index);
 
-public class RegionRepository extends AbstractRepository {
+	public int getChildCount();
 
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
-
-	}
-
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
-	}
-
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
-	}
+	public int getIndexOfChild(Object child);
 
 }

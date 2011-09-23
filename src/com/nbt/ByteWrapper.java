@@ -27,31 +27,64 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
 
-import com.nbt.region.RegionFile;
+public class ByteWrapper implements Node {
 
-public class RegionRepository extends AbstractRepository {
+	private final byte[] bytes;
+	private final int index;
 
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
-
+	public ByteWrapper(byte[] bytes, int index) {
+		this.bytes = bytes;
+		this.index = index;
 	}
 
 	@Override
-	protected InputStream createInputStream() throws IOException {
+	public boolean isCellEditable(int column) {
+		switch (column) {
+			case Node.COLUMN_VALUE:
+				return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+		switch (column) {
+			case Node.COLUMN_KEY:
+				return index;
+			case Node.COLUMN_VALUE:
+				return bytes[index];
+		}
 		return null;
 	}
 
 	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
+	public void setValueAt(Object value, int column) {
+		if (value instanceof Byte) {
+			switch (column) {
+				case Node.COLUMN_VALUE:
+					bytes[index] = (Byte) value;
+			}
+		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ByteWrapper other = (ByteWrapper) obj;
+		if (!Arrays.equals(bytes, other.bytes))
+			return false;
+		if (index != other.index)
+			return false;
+		return true;
 	}
 
 }

@@ -30,43 +30,34 @@
 package com.nbt;
 
 import java.awt.EventQueue;
+import java.io.File;
 
 import javax.swing.UIManager;
-
-import com.tag.FramePreferences;
 
 public class Main {
 
 	public static void main(final String[] args) {
-		setPreferredLookAndFeel();
+		//setPreferredLookAndFeel();
 		EventQueue.invokeLater(new Runnable() {
 
 			public void run() {
-				EventQueue.invokeLater(new Runnable() {
+				GUI gui = new GUI();
+				gui.setVisible(true);
 
-					public void run() {
-						try {
-							Workspace frame = new Workspace("Workspace");
-
-							FramePreferences preferences = new FramePreferences(
-									frame, "workspace");
-							preferences.restoreAll();
-							preferences.install();
-
-							frame.setVisible(true);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
+				if (args.length > 0) {
+					File file = new File(args[0]);
+					if (file.canRead())
+						gui.doImport(file);
+				}
 			}
 
 		});
 	}
 
+	@SuppressWarnings("unused")
 	private static void setPreferredLookAndFeel() {
 		String[] lafs = {
-				//				/"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
+				//"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
 				UIManager.getSystemLookAndFeelClassName(),
 				UIManager.getCrossPlatformLookAndFeelClassName()
 		};

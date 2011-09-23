@@ -69,6 +69,7 @@ public class Hyperlink extends JButton {
 		setHorizontalAlignment(SwingConstants.LEFT);
 		setBackground(Color.WHITE);
 		setBorder(null);
+		setBorderPainted(false);
 		setOpaque(false);
 
 		String toolTip = getUri().toString();

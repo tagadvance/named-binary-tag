@@ -100,7 +100,7 @@ public class ImageFactory {
 				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2d.setColor(color == null ? Color.BLACK : color);
 
-		int size = 8;
+		int size = 1;
 		Font font = null;
 		FontMetrics metrics;
 		do {

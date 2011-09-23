@@ -1,5 +1,13 @@
 package org.jnbt;
 
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.tree.TreePath;
+
+import com.nbt.NBTTreeTable;
+import com.nbt.Node;
+
 /*
  * JNBT License
  * 
@@ -39,18 +47,18 @@ package org.jnbt;
  * @author Taggart Spilman
  * 
  */
-public abstract class Tag<T> {
+public abstract class Tag<T> implements Node {
 
 	/**
 	 * The name of this tag.
 	 */
 	private String name;
 	private T value;
-	
+
 	public Tag() {
-		
+
 	}
-	
+
 	/**
 	 * Creates the tag with the specified name.
 	 * 
@@ -128,6 +136,68 @@ public abstract class Tag<T> {
 			sb.append("(\"").append(name).append("\")");
 		sb.append(": ").append(value);
 		return sb.toString();
+	}
+
+	@Override
+	public boolean isCellEditable(int column) {
+		return true;
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+		switch (column) {
+			case COLUMN_KEY:
+				return getName();
+			case COLUMN_VALUE:
+				return getValue();
+			default:
+				return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void setValueAt(Object value, int column) {
+		switch (column) {
+			case COLUMN_KEY:
+				String name = (value == null ? null : value.toString());
+				setName(name);
+				break;
+			case COLUMN_VALUE:
+				setValue((T) value);
+				break;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Tag<?> other = (Tag<?>) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
 	}
 
 }

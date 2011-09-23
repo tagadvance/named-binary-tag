@@ -27,31 +27,54 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package resources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
+import java.net.URL;
+import java.util.MissingResourceException;
 
-import com.nbt.region.RegionFile;
+import javax.imageio.ImageIO;
 
-public class RegionRepository extends AbstractRepository {
+public class Resource {
 
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
+	public Resource() {
 
 	}
 
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
+	public BufferedImage getImage(String name) {
+		return new ResourceLoader<BufferedImage>(name) {
+
+			@Override
+			protected BufferedImage get(URL url) throws Exception {
+				return ImageIO.read(url);
+			}
+
+		}.get();
 	}
 
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
+	private static abstract class ResourceLoader<V> {
+
+		final String name;
+
+		public ResourceLoader(String key) {
+			if (key == null)
+				throw new IllegalArgumentException("");
+			this.name = key;
+		}
+
+		public final V get() throws MissingResourceException {
+			URL url = Resource.class.getResource(name);
+			try {
+				return get(url);
+			} catch (Exception e) {
+				String className = Resource.class.getName();
+				throw new MissingResourceException(e.getMessage(), className,
+						name);
+			}
+		}
+
+		protected abstract V get(URL url) throws Exception;
+
 	}
 
 }

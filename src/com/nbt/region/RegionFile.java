@@ -1,4 +1,4 @@
-package com.nbt;
+package com.nbt.region;
 
 /*
  * 2011 January 5
@@ -186,14 +186,15 @@ public class RegionFile {
 					+ numSectors);
 
 		byte version = file.readByte();
-		if (version == VERSION_GZIP) {
-			byte[] data = new byte[length - 1];
-			file.read(data);
-			return new GZIPInputStream(new ByteArrayInputStream(data));
-		} else if (version == VERSION_DEFLATE) {
-			byte[] data = new byte[length - 1];
-			file.read(data);
-			return new InflaterInputStream(new ByteArrayInputStream(data));
+		switch (version) {
+			case VERSION_GZIP:
+				byte[] data = new byte[length - 1];
+				file.read(data);
+				return new GZIPInputStream(new ByteArrayInputStream(data));
+			case VERSION_DEFLATE:
+				data = new byte[length - 1];
+				file.read(data);
+				return new InflaterInputStream(new ByteArrayInputStream(data));
 		}
 
 		throw new IOException("unknown version " + version);
@@ -212,7 +213,7 @@ public class RegionFile {
 	 */
 	class ChunkBuffer extends ByteArrayOutputStream {
 
-		private int x, z;
+		private final int x, z;
 
 		public ChunkBuffer(int x, int z) {
 			super(8096); // initialize to 8KB
@@ -220,9 +221,11 @@ public class RegionFile {
 			this.z = z;
 		}
 
+		@Override
 		public void close() {
 			RegionFile.this.write(x, z, buf, count);
 		}
+
 	}
 
 	/**
@@ -236,9 +239,8 @@ public class RegionFile {
 			int sectorsNeeded = (length + CHUNK_HEADER_SIZE) / SECTOR_BYTES + 1;
 
 			// maximum chunk size is 1MB
-			if (sectorsNeeded >= 256) {
+			if (sectorsNeeded >= 256)
 				return;
-			}
 
 			if (sectorNumber != 0 && sectorsAllocated == sectorsNeeded) {
 				// we can simply overwrite the old sectors
@@ -316,7 +318,7 @@ public class RegionFile {
 		return x < 0 || x >= 32 || z < 0 || z >= 32;
 	}
 
-	private int getOffset(int x, int z) {
+	protected int getOffset(int x, int z) {
 		return offsets[x + z * 32];
 	}
 
@@ -324,13 +326,13 @@ public class RegionFile {
 		return getOffset(x, z) != 0;
 	}
 
-	private void setOffset(int x, int z, int offset) throws IOException {
+	protected void setOffset(int x, int z, int offset) throws IOException {
 		offsets[x + z * 32] = offset;
 		file.seek((x + z * 32) * 4);
 		file.writeInt(offset);
 	}
 
-	private void setTimestamp(int x, int z, int value) throws IOException {
+	protected void setTimestamp(int x, int z, int value) throws IOException {
 		chunkTimestamps[x + z * 32] = value;
 		file.seek(SECTOR_BYTES + (x + z * 32) * 4);
 		file.writeInt(value);
