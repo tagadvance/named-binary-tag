@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.swing.tree.TreePath;
 
 import com.nbt.NBTTreeTable;
-import com.nbt.Node;
+import com.nbt.NBTNode;
 
 /*
  * JNBT License
@@ -47,157 +47,157 @@ import com.nbt.Node;
  * @author Taggart Spilman
  * 
  */
-public abstract class Tag<T> implements Node {
+public abstract class Tag<T> implements NBTNode {
 
-	/**
-	 * The name of this tag.
-	 */
-	private String name;
-	private T value;
+    /**
+     * The name of this tag.
+     */
+    private String name;
+    private T value;
 
-	public Tag() {
+    public Tag() {
 
+    }
+
+    /**
+     * Creates the tag with the specified name.
+     * 
+     * @param name
+     *            The name.
+     */
+    public Tag(String name) {
+	this(name, null);
+    }
+
+    /**
+     * Creates the tag with the specified name.
+     * 
+     * @param name
+     *            The name.
+     * @param value
+     *            The Value.
+     */
+    public Tag(String name, T value) {
+	setName(name);
+	setValue(value);
+    }
+
+    /**
+     * Gets the name of this tag.
+     * 
+     * @return The name of this tag.
+     */
+    public String getName() {
+	return name;
+    }
+
+    public void setName(String name) {
+	if (name == null)
+	    name = createDefaultName();
+	this.name = name;
+    }
+
+    protected String createDefaultName() {
+	return "";
+    }
+
+    /**
+     * Gets the value of this tag.
+     * 
+     * @return The value of this tag.
+     * @throws IllegalStateException
+     */
+    public T getValue() {
+	if (value == null)
+	    setValue(null);
+	return this.value;
+    }
+
+    /**
+     * Sets the value of this <code>Tag</code> to the specified value.
+     * 
+     * @param value
+     *            the new value to be set
+     */
+    public void setValue(T value) {
+	if (value == null)
+	    value = createDefaultValue();
+	this.value = value;
+    }
+
+    protected T createDefaultValue() {
+	throw new IllegalStateException();
+    }
+
+    protected String toString(String tagType) {
+	StringBuilder sb = new StringBuilder(tagType);
+	String name = getName();
+	if (!name.isEmpty())
+	    sb.append("(\"").append(name).append("\")");
+	sb.append(": ").append(value);
+	return sb.toString();
+    }
+
+    @Override
+    public boolean isCellEditable(int column) {
+	return true;
+    }
+
+    @Override
+    public Object getValueAt(int column) {
+	switch (column) {
+	case COLUMN_KEY:
+	    return getName();
+	case COLUMN_VALUE:
+	    return getValue();
+	default:
+	    return null;
 	}
+    }
 
-	/**
-	 * Creates the tag with the specified name.
-	 * 
-	 * @param name
-	 *            The name.
-	 */
-	public Tag(String name) {
-		this(name, null);
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setValueAt(Object value, int column) {
+	switch (column) {
+	case COLUMN_KEY:
+	    String name = (value == null ? null : value.toString());
+	    setName(name);
+	    break;
+	case COLUMN_VALUE:
+	    setValue((T) value);
+	    break;
 	}
+    }
 
-	/**
-	 * Creates the tag with the specified name.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The Value.
-	 */
-	public Tag(String name, T value) {
-		setName(name);
-		setValue(value);
-	}
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((name == null) ? 0 : name.hashCode());
+	result = prime * result + ((value == null) ? 0 : value.hashCode());
+	return result;
+    }
 
-	/**
-	 * Gets the name of this tag.
-	 * 
-	 * @return The name of this tag.
-	 */
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		if (name == null)
-			name = createDefaultName();
-		this.name = name;
-	}
-
-	protected String createDefaultName() {
-		return "";
-	}
-
-	/**
-	 * Gets the value of this tag.
-	 * 
-	 * @return The value of this tag.
-	 * @throws IllegalStateException
-	 */
-	public T getValue() {
-		if (value == null)
-			setValue(null);
-		return this.value;
-	}
-
-	/**
-	 * Sets the value of this <code>Tag</code> to the specified value.
-	 * 
-	 * @param value
-	 *            the new value to be set
-	 */
-	public void setValue(T value) {
-		if (value == null)
-			value = createDefaultValue();
-		this.value = value;
-	}
-
-	protected T createDefaultValue() {
-		throw new IllegalStateException();
-	}
-
-	protected String toString(String tagType) {
-		StringBuilder sb = new StringBuilder(tagType);
-		String name = getName();
-		if (!name.isEmpty())
-			sb.append("(\"").append(name).append("\")");
-		sb.append(": ").append(value);
-		return sb.toString();
-	}
-
-	@Override
-	public boolean isCellEditable(int column) {
-		return true;
-	}
-
-	@Override
-	public Object getValueAt(int column) {
-		switch (column) {
-			case COLUMN_KEY:
-				return getName();
-			case COLUMN_VALUE:
-				return getValue();
-			default:
-				return null;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void setValueAt(Object value, int column) {
-		switch (column) {
-			case COLUMN_KEY:
-				String name = (value == null ? null : value.toString());
-				setName(name);
-				break;
-			case COLUMN_VALUE:
-				setValue((T) value);
-				break;
-		}
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Tag<?> other = (Tag<?>) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	Tag<?> other = (Tag<?>) obj;
+	if (name == null) {
+	    if (other.name != null)
+		return false;
+	} else if (!name.equals(other.name))
+	    return false;
+	if (value == null) {
+	    if (other.value != null)
+		return false;
+	} else if (!value.equals(other.value))
+	    return false;
+	return true;
+    }
 
 }

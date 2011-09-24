@@ -41,15 +41,15 @@ package org.jnbt;
  */
 public class ShortTag extends Tag<Short> {
 
-	public static final String TAG_NAME = "TAG_Short";
+    public static final String TAG_NAME = "TAG_Short";
 
-	public ShortTag(String name, short value) {
-		super(name, value);
-	}
+    public ShortTag(String name, short value) {
+	super(name, value);
+    }
 
-	@Override
-	public String toString() {
-		return toString(TAG_NAME);
-	}
+    @Override
+    public String toString() {
+	return toString(TAG_NAME);
+    }
 
 }

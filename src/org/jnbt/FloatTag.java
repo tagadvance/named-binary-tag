@@ -40,16 +40,16 @@ package org.jnbt;
  * 
  */
 public class FloatTag extends Tag<Float> {
-	
-	public static final String TAG_NAME = "TAG_Float";
 
-	public FloatTag(String name, float value) {
-		super(name, value);
-	}
+    public static final String TAG_NAME = "TAG_Float";
 
-	@Override
-	public String toString() {
-		return toString(TAG_NAME);
-	}
+    public FloatTag(String name, float value) {
+	super(name, value);
+    }
+
+    @Override
+    public String toString() {
+	return toString(TAG_NAME);
+    }
 
 }

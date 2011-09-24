@@ -40,24 +40,24 @@ package org.jnbt;
  * 
  */
 public class ByteTag extends Tag<Byte> {
-	
-	public static final String TAG_NAME = "TAG_Byte";
 
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param value
-	 *            The value.
-	 */
-	public ByteTag(String name, byte value) {
-		super(name, value);
-	}
+    public static final String TAG_NAME = "TAG_Byte";
 
-	@Override
-	public String toString() {
-		return toString(TAG_NAME);
-	}
+    /**
+     * Creates the tag.
+     * 
+     * @param name
+     *            The name.
+     * @param value
+     *            The value.
+     */
+    public ByteTag(String name, byte value) {
+	super(name, value);
+    }
+
+    @Override
+    public String toString() {
+	return toString(TAG_NAME);
+    }
 
 }

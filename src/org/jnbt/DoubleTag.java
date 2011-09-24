@@ -40,16 +40,16 @@ package org.jnbt;
  * 
  */
 public class DoubleTag extends Tag<Double> {
-	
-	public static final String TAG_NAME = "TAG_Double";
-	
-	public DoubleTag(String name, double value) {
-		super(name, value);
-	}
 
-	@Override
-	public String toString() {
-		return toString(TAG_NAME);
-	}
+    public static final String TAG_NAME = "TAG_Double";
+
+    public DoubleTag(String name, double value) {
+	super(name, value);
+    }
+
+    @Override
+    public String toString() {
+	return toString(TAG_NAME);
+    }
 
 }

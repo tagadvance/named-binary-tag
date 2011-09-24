@@ -40,29 +40,29 @@ package org.jnbt;
  * 
  */
 public class EndTag extends Tag<Void> {
-	
-	public static final String TAG_NAME = "TAG_End";
 
-	/**
-	 * Creates the tag.
-	 */
-	public EndTag() {
-		super("");
-	}
+    public static final String TAG_NAME = "TAG_End";
 
-	@Override
-	public Void getValue() {
-		return null;
-	}
+    /**
+     * Creates the tag.
+     */
+    public EndTag() {
+	super("");
+    }
 
-	@Override
-	public void setValue(Void value) {
-		// do nothing
-	}
+    @Override
+    public Void getValue() {
+	return null;
+    }
 
-	@Override
-	public String toString() {
-		return TAG_NAME;
-	}
+    @Override
+    public void setValue(Void value) {
+	// do nothing
+    }
+
+    @Override
+    public String toString() {
+	return TAG_NAME;
+    }
 
 }
