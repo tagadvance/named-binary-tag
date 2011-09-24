@@ -27,14 +27,43 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.nbt.world;
 
-public interface Branch {
+public class ChunkLocation {
 
-	public Object getChild(int index);
+    public static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
 
-	public int getChildCount();
+    private int x, z;
 
-	public int getIndexOfChild(Object child);
+    public ChunkLocation() {
+	this(MIN_X, MIN_Z);
+    }
+
+    public ChunkLocation(int x, int z) {
+	setX(x);
+	setZ(z);
+    }
+
+    public int getX() {
+	return x;
+    }
+
+    public void setX(int x) {
+	if (x < MIN_X || x > MAX_X)
+	    throw new IllegalArgumentException(MAX_X + " >= " + x + " >= "
+		    + MIN_X);
+	this.x = x;
+    }
+
+    public int getZ() {
+	return z;
+    }
+
+    public void setZ(int z) {
+	if (z < MIN_Z || z > MAX_Z)
+	    throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
+		    + MIN_Z);
+	this.z = z;
+    }
 
 }

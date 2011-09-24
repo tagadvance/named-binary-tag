@@ -27,16 +27,47 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.data;
 
-import java.io.IOException;
+public class SimpleRecord implements Record {
 
-import org.jnbt.Tag;
+    private static final int EXPECTED_LENGTH = 3;
+    private static final int INDEX_NAME = 0, INDEX_ID = 1, INDEX_ICON = 2;
 
-public interface Repository {
+    private final String name;
+    private final int id, iconIndex;
 
-	public Tag<?> load() throws IOException;
+    /**
+     * 
+     * @param row
+     * @throws IllegalArgumentException
+     * @throws NumberFormatException
+     */
+    public SimpleRecord(String[] row) {
+	if (row.length < EXPECTED_LENGTH)
+	    throw new IllegalArgumentException("row is too short");
+	this.name = row[INDEX_NAME].trim();
+	this.id = Integer.parseInt(row[INDEX_ID].trim());
+	this.iconIndex = Integer.parseInt(row[INDEX_ICON].trim());
+    }
 
-	public void save(Tag<?> tag) throws IOException;
+    @Override
+    public String getName() {
+	return this.name;
+    }
+
+    @Override
+    public int getID() {
+	return this.id;
+    }
+
+    @Override
+    public int getIconIndex() {
+	return this.iconIndex;
+    }
+
+    public String toString() {
+	return getName() + ", " + getID() + ", " + getIconIndex();
+    }
 
 }

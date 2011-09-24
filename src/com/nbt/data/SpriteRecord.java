@@ -27,74 +27,49 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package resources;
+package com.nbt.data;
 
 import java.awt.image.BufferedImage;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.List;
-import java.util.MissingResourceException;
 
-import javax.imageio.ImageIO;
+import resources.Resource;
 
-import org.apache.commons.io.IOUtils;
+public class SpriteRecord extends SimpleRecord implements Sprite {
 
-import au.com.bytecode.opencsv.CSVReader;
+    private static Grid256 blockGrid;
+    private static Grid256 itemGrid;
 
-public class Resource {
-
-    public Resource() {
-
+    public SpriteRecord(String[] row) {
+	super(row);
     }
 
-    public List<String[]> getCSV(String name) {
-	return new ResourceLoader<List<String[]>>(name) {
-	    @Override
-	    protected List<String[]> get(URL url) throws Exception {
-		CSVReader reader = null;
-		try {
-		    reader = new CSVReader(new InputStreamReader(
-			    url.openStream()));
-		    return reader.readAll();
-		} finally {
-		    IOUtils.closeQuietly(reader);
-		}
-	    }
-	}.get();
+    public boolean isBlock() {
+	int id = getID();
+	return (id >= 0 && id <= 0xFF);
     }
 
-    public BufferedImage getImage(String name) {
-	return new ResourceLoader<BufferedImage>(name) {
-	    @Override
-	    protected BufferedImage get(URL url) throws Exception {
-		return ImageIO.read(url);
-	    }
-	}.get();
+    @Override
+    public BufferedImage getImage() {
+	Grid256 grid = isBlock() ? getBlockGrid() : getItemGrid();
+	int index = getIconIndex();
+	return grid.subimage(index);
     }
 
-    private static abstract class ResourceLoader<V> {
+    private static Grid256 getBlockGrid() {
+	if (blockGrid == null)
+	    blockGrid = createGrid("images/terrain.png");
+	return blockGrid;
+    }
 
-	final String name;
+    private static Grid256 getItemGrid() {
+	if (itemGrid == null)
+	    itemGrid = createGrid("images/items.png");
+	return itemGrid;
+    }
 
-	public ResourceLoader(String name) {
-	    if (name == null)
-		throw new IllegalArgumentException("name must not be null");
-	    this.name = name;
-	}
-
-	public final V get() throws MissingResourceException {
-	    URL url = Resource.class.getResource(name);
-	    try {
-		return get(url);
-	    } catch (Exception e) {
-		String className = Resource.class.getName();
-		throw new MissingResourceException(e.getMessage(), className,
-			name);
-	    }
-	}
-
-	protected abstract V get(URL url) throws Exception;
-
+    private static Grid256 createGrid(String name) {
+	Resource resource = new Resource();
+	BufferedImage image = resource.getImage(name);
+	return new Grid256(image);
     }
 
 }

@@ -44,62 +44,62 @@ import com.tag.HexUtils;
 @SuppressWarnings("serial")
 public class HexCellEditor extends SpinnerCellEditor {
 
-	static final int MINIMUM = 0;
-	static final int MAXIMUM = 0xFF;
-	static final int STEP_SIZE = 1;
+    static final int MINIMUM = 0;
+    static final int MAXIMUM = 0xFF;
+    static final int STEP_SIZE = 1;
 
-	public HexCellEditor(byte b) {
-		this(b & 0xFF);
+    public HexCellEditor(byte b) {
+	this(b & 0xFF);
+    }
+
+    public HexCellEditor(int value) {
+	super(new SpinnerNumberModel(value, MINIMUM, MAXIMUM, STEP_SIZE));
+	spinner.setEditor(new HexEditor(spinner));
+    }
+
+    class HexEditor extends DefaultEditor {
+
+	public HexEditor(JSpinner spinner) {
+	    super(spinner);
+
+	    JFormattedTextField ftf = getTextField();
+	    ftf.setEditable(true);
+	    ftf.setColumns(2);
+	    ftf.setHorizontalAlignment(JTextField.RIGHT);
+	    ftf.setFormatterFactory(new DefaultFormatterFactory(
+		    new HexFormatter()));
 	}
 
-	public HexCellEditor(int value) {
-		super(new SpinnerNumberModel(value, MINIMUM, MAXIMUM, STEP_SIZE));
-		spinner.setEditor(new HexEditor(spinner));
+    }
+
+    class HexFormatter extends DefaultFormatter {
+
+	private HexFormatter() {
+	    super();
 	}
 
-	class HexEditor extends DefaultEditor {
-
-		public HexEditor(JSpinner spinner) {
-			super(spinner);
-
-			JFormattedTextField ftf = getTextField();
-			ftf.setEditable(true);
-			ftf.setColumns(2);
-			ftf.setHorizontalAlignment(JTextField.RIGHT);
-			ftf.setFormatterFactory(new DefaultFormatterFactory(
-					new HexFormatter()));
-		}
-
+	public Object stringToValue(String string) throws ParseException {
+	    try {
+		int radix = 16;
+		return Integer.valueOf(string, radix);
+	    } catch (NumberFormatException nfe) {
+		int errorOffset = 0;
+		throw new ParseException(string, errorOffset);
+	    }
 	}
 
-	class HexFormatter extends DefaultFormatter {
+	@Override
+	public String valueToString(Object value) throws ParseException {
+	    if (!(value instanceof Number)) {
+		int errorOffset = 0;
+		throw new ParseException("" + value, errorOffset);
+	    }
 
-		private HexFormatter() {
-			super();
-		}
-
-		public Object stringToValue(String string) throws ParseException {
-			try {
-				int radix = 16;
-				return Integer.valueOf(string, radix);
-			} catch (NumberFormatException nfe) {
-				int errorOffset = 0;
-				throw new ParseException(string, errorOffset);
-			}
-		}
-
-		@Override
-		public String valueToString(Object value) throws ParseException {
-			if (!(value instanceof Number)) {
-				int errorOffset = 0;
-				throw new ParseException("" + value, errorOffset);
-			}
-
-			Number n = (Number) value;
-			int i = n.intValue();
-			return HexUtils.intToHex(i);
-		}
-
+	    Number n = (Number) value;
+	    int i = n.intValue();
+	    return HexUtils.intToHex(i);
 	}
+
+    }
 
 }

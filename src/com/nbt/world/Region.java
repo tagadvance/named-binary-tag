@@ -27,16 +27,26 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.nbt.world;
 
-public interface Node {
+import java.util.List;
 
-	public static final int COLUMN_KEY = 0, COLUMN_VALUE = 1;
+import org.jnbt.Tag;
 
-	boolean isCellEditable(int column);
+public interface Region {
 
-	public Object getValueAt(int column);
+    long lastModified();
+    
+    int getX();
+    
+    int getZ();
 
-	public void setValueAt(Object value, int column);
+    List<Tag<?>> getTags();
+
+    Tag<?> loadTag(int x, int z);
+    
+    void saveTag(int x, int z, Tag<?> tag);
+    
+    String getName();
 
 }

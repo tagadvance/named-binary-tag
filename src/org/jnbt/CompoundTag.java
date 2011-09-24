@@ -34,7 +34,6 @@ package org.jnbt;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.nbt.NBTBranch;
@@ -48,82 +47,82 @@ import com.nbt.NBTBranch;
  */
 public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
 
-	public static final String TAG_NAME = "TAG_Compound";
+    public static final String TAG_NAME = "TAG_Compound";
 
-	public CompoundTag(String name) {
-		super(name, null);
-	}
+    public CompoundTag(String name) {
+	super(name, null);
+    }
 
-	public CompoundTag(String name, Map<String, Tag<?>> value) {
-		super(name, value);
-	}
+    public CompoundTag(String name, Map<String, Tag<?>> value) {
+	super(name, value);
+    }
 
-	@Override
-	protected Map<String, Tag<?>> createDefaultValue() {
-		return new LinkedHashMap<String, Tag<?>>();
-	}
+    @Override
+    protected Map<String, Tag<?>> createDefaultValue() {
+	return new LinkedHashMap<String, Tag<?>>();
+    }
 
-	@Override
-	public boolean isCellEditable(int column) {
-		return false;
-	}
+    @Override
+    public boolean isCellEditable(int column) {
+	return false;
+    }
 
-	@Override
-	public Object getValueAt(int column) {
-		switch (column) {
-			case COLUMN_VALUE:
-				Map<String, Tag<?>> map = getValue();
-				int size = map.size();
-				return size + (size != 0 && size > 1 ? " entries" : " entry");
-			default:
-				return super.getValueAt(column);
-		}
+    @Override
+    public Object getValueAt(int column) {
+	switch (column) {
+	case COLUMN_VALUE:
+	    Map<String, Tag<?>> map = getValue();
+	    int size = map.size();
+	    return size + (size != 0 && size > 1 ? " entries" : " entry");
+	default:
+	    return super.getValueAt(column);
 	}
+    }
 
-	@Override
-	public Object getChild(int index) {
-		Map<String, Tag<?>> map = getValue();
-		Collection<Tag<?>> values = map.values();
-		return values.toArray()[index];
-	}
+    @Override
+    public Object getChild(int index) {
+	Map<String, Tag<?>> map = getValue();
+	Collection<Tag<?>> values = map.values();
+	return values.toArray()[index];
+    }
 
-	@Override
-	public int getChildCount() {
-		Map<String, Tag<?>> map = getValue();
-		return map.size();
-	}
+    @Override
+    public int getChildCount() {
+	Map<String, Tag<?>> map = getValue();
+	return map.size();
+    }
 
-	@Override
-	public int getIndexOfChild(Object child) {
-		if (child != null) {
-			Map<String, Tag<?>> map = getValue();
-			int i = 0;
-			for (Tag<?> t : map.values()) {
-				if (t.equals(child))
-					return i;
-				i++;
-			}
-		}
-		return -1;
+    @Override
+    public int getIndexOfChild(Object child) {
+	if (child != null) {
+	    Map<String, Tag<?>> map = getValue();
+	    int i = 0;
+	    for (Tag<?> t : map.values()) {
+		if (t.equals(child))
+		    return i;
+		i++;
+	    }
 	}
+	return -1;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder(TAG_NAME);
-		String name = getName();
-		if (!name.isEmpty())
-			sb.append("(\"").append(name).append("\")");
-		Map<String, Tag<?>> map = getValue();
-		int size = map.size();
-		sb.append(": ").append(size).append(" entries\r\n{\r\n");
-		for (Map.Entry<String, Tag<?>> entry : map.entrySet()) {
-			Tag<?> tag = entry.getValue();
-			String s = tag.toString();
-			s = s.replaceAll("\r\n", "\r\n   ");
-			sb.append("   ").append(s).append("\r\n");
-		}
-		sb.append("}");
-		return sb.toString();
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder(TAG_NAME);
+	String name = getName();
+	if (!name.isEmpty())
+	    sb.append("(\"").append(name).append("\")");
+	Map<String, Tag<?>> map = getValue();
+	int size = map.size();
+	sb.append(": ").append(size).append(" entries\r\n{\r\n");
+	for (Map.Entry<String, Tag<?>> entry : map.entrySet()) {
+	    Tag<?> tag = entry.getValue();
+	    String s = tag.toString();
+	    s = s.replaceAll("\r\n", "\r\n   ");
+	    sb.append("   ").append(s).append("\r\n");
 	}
+	sb.append("}");
+	return sb.toString();
+    }
 
 }

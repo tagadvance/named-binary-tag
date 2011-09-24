@@ -27,43 +27,12 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.data;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
 
-public class FileRepository extends AbstractRepository {
+public interface Sprite {
 
-	private File file;
-	
-	public FileRepository(File file) {
-		setFile(file);
-	}
-
-	public File getFile() {
-		return file;
-	}
-
-	public void setFile(File file) {
-		if (file == null)
-			throw new IllegalArgumentException("file must not be null");
-		this.file = file;
-	}
-
-	@Override
-	protected InputStream createInputStream() throws FileNotFoundException {
-		File file = getFile();
-		return new FileInputStream(file);
-	}
-
-	@Override
-	protected OutputStream createOutputStream() throws FileNotFoundException {
-		File file = getFile();
-		return new FileOutputStream(file);
-	}
+    BufferedImage getImage();
 
 }

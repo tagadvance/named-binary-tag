@@ -27,27 +27,8 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.nbt.world;
 
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.border.Border;
-
-@SuppressWarnings("serial")
-public class ToolBarButton extends JButton {
-
-    public ToolBarButton(Action a) {
-	super(a);
-    }
-
-    @Override
-    public void setBorder(Border border) {
-	// do nothing
-    }
-
-    @Override
-    public void setText(String text) {
-	// do nothing
-    }
+public interface Entity {
 
 }

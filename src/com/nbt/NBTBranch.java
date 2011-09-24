@@ -27,16 +27,14 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.region;
+package com.nbt;
 
-import java.util.List;
+public interface NBTBranch {
 
-public interface Region {
-	
-	long lastModified();
-	
-	List<Chunk> getChunks();
-	
-	Chunk getChunk(int x, int z);
-	
+    public Object getChild(int index);
+
+    public int getChildCount();
+
+    public int getIndexOfChild(Object child);
+
 }

@@ -44,12 +44,13 @@ import com.nbt.NBTBranch;
  * @author Taggart Spilman
  * 
  */
-public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
+public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
+	NBTBranch {
 
     /**
      * The type.
      */
-    private Class<? extends Tag> type;
+    private Class<E> type;
 
     /**
      * Creates the tag.
@@ -61,7 +62,7 @@ public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
      * @param value
      *            The value.
      */
-    public ListTag(String name, List<Tag<?>> value, Class<? extends Tag> type) {
+    public ListTag(String name, List<E> value, Class<E> type) {
 	super(name, value);
 	setType(type);
     }
@@ -71,19 +72,19 @@ public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
      * 
      * @return The type of item in this list.
      */
-    public Class<? extends Tag> getType() {
+    public Class<E> getType() {
 	return type;
     }
 
-    private void setType(Class<? extends Tag> type) {
+    private void setType(Class<E> type) {
 	if (type == null)
 	    throw new IllegalArgumentException("type must not be null");
 	this.type = type;
     }
 
     @Override
-    protected List<Tag<?>> createDefaultValue() {
-	return new ArrayList<Tag<?>>();
+    protected List<E> createDefaultValue() {
+	return new ArrayList<E>();
     }
 
     @Override
@@ -95,7 +96,7 @@ public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
     public Object getValueAt(int column) {
 	switch (column) {
 	case COLUMN_VALUE:
-	    List<Tag<?>> list = getValue();
+	    List<E> list = getValue();
 	    int size = list.size();
 	    return size + (size != 0 && size > 1 ? " entries" : " entry");
 	default:
@@ -118,7 +119,7 @@ public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
     @Override
     public int getIndexOfChild(Object child) {
 	if (child != null) {
-	    List<Tag<?>> list = getValue();
+	    List<E> list = getValue();
 	    for (int i = 0; i < list.size(); i++) {
 		Tag<?> tag = list.get(i);
 		if (child.equals(tag))
@@ -134,9 +135,9 @@ public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
 	String name = getName();
 	if (!name.isEmpty())
 	    sb.append("(\"").append(name).append("\")");
-	List<Tag<?>> value = getValue();
+	List<E> value = getValue();
 	int size = value.size();
-	Class<? extends Tag> type = getType();
+	Class<E> type = getType();
 	String typeName = NBTUtils.getTypeName(type);
 	sb.append(": ").append(size).append(" entries of type ")
 		.append(typeName).append("\r\n{\r\n");

@@ -1,7 +1,7 @@
 package org.jnbt;
 
 import com.nbt.NBTBranch;
-import com.nbt.ByteWrapper;
+import com.nbt.NBTNode;
 import com.tag.HexUtils;
 
 /*
@@ -78,8 +78,7 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 
     @Override
     public Object getChild(int index) {
-	byte[] value = getValue();
-	return new ByteWrapper(value, index);
+	return new ByteWrapper(index);
     }
 
     @Override
@@ -109,6 +108,71 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	    sb.append(hex);
 	}
 	return sb.toString();
+    }
+
+    public class ByteWrapper implements NBTNode {
+
+	private final int index;
+
+	public ByteWrapper(int index) {
+	    this.index = index;
+	}
+
+	public ByteArrayTag getTag() {
+	    return ByteArrayTag.this;
+	}
+
+	public int getIndex() {
+	    return this.index;
+	}
+
+	@Override
+	public boolean isCellEditable(int column) {
+	    switch (column) {
+	    case NBTNode.COLUMN_VALUE:
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+	    switch (column) {
+	    case NBTNode.COLUMN_KEY:
+		return index;
+	    case NBTNode.COLUMN_VALUE:
+		byte[] bytes = getValue();
+		return bytes[index];
+	    }
+	    return null;
+	}
+
+	@Override
+	public void setValueAt(Object value, int column) {
+	    if (value instanceof Integer) {
+		int i = (Integer) value;
+		switch (column) {
+		case NBTNode.COLUMN_VALUE:
+		    byte[] bytes = getValue();
+		    bytes[index] = (byte) i;
+		}
+	    }
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    if (this == obj)
+		return true;
+	    if (obj == null)
+		return false;
+	    if (getClass() != obj.getClass())
+		return false;
+	    ByteWrapper other = (ByteWrapper) obj;
+	    if (index != other.index)
+		return false;
+	    return true;
+	}
+
     }
 
 }

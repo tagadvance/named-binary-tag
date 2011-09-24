@@ -33,22 +33,22 @@ import org.apache.commons.lang3.StringUtils;
 
 public class HexUtils {
 
-	private HexUtils() {
-		
-	}
+    private HexUtils() {
 
-	public static String byteToHex(byte b) {
-		return intToHex(b & 0xFF);
-	}
+    }
 
-	public static String intToHex(int i) {
-		String hex = Integer.toHexString(i);
-		int size = 2;
-		hex = StringUtils.leftPad(hex, size, '0');
-		hex = hex.toUpperCase();
-		int length = hex.length();
-		int beginIndex = length - size;
-		return hex.substring(beginIndex);
-	}
+    public static String byteToHex(byte b) {
+	return intToHex(b & 0xFF);
+    }
+
+    public static String intToHex(int i) {
+	String hex = Integer.toHexString(i);
+	int size = 2;
+	hex = StringUtils.leftPad(hex, size, '0');
+	hex = hex.toUpperCase();
+	int length = hex.length();
+	int beginIndex = length - size;
+	return hex.substring(beginIndex);
+    }
 
 }
