@@ -29,62 +29,14 @@
 
 package com.nbt;
 
-import java.util.Arrays;
+public interface NBTNode {
 
-public class ByteWrapper implements Node {
+    public static final int COLUMN_KEY = 0, COLUMN_VALUE = 1;
 
-	private final byte[] bytes;
-	private final int index;
+    boolean isCellEditable(int column);
 
-	public ByteWrapper(byte[] bytes, int index) {
-		this.bytes = bytes;
-		this.index = index;
-	}
+    public Object getValueAt(int column);
 
-	@Override
-	public boolean isCellEditable(int column) {
-		switch (column) {
-			case Node.COLUMN_VALUE:
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public Object getValueAt(int column) {
-		switch (column) {
-			case Node.COLUMN_KEY:
-				return index;
-			case Node.COLUMN_VALUE:
-				return bytes[index];
-		}
-		return null;
-	}
-
-	@Override
-	public void setValueAt(Object value, int column) {
-		if (value instanceof Byte) {
-			switch (column) {
-				case Node.COLUMN_VALUE:
-					bytes[index] = (Byte) value;
-			}
-		}
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ByteWrapper other = (ByteWrapper) obj;
-		if (!Arrays.equals(bytes, other.bytes))
-			return false;
-		if (index != other.index)
-			return false;
-		return true;
-	}
+    public void setValueAt(Object value, int column);
 
 }

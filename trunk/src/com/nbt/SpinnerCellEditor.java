@@ -41,32 +41,32 @@ import javax.swing.table.TableCellEditor;
 
 @SuppressWarnings("serial")
 public class SpinnerCellEditor extends AbstractCellEditor implements
-		TableCellEditor {
+	TableCellEditor {
 
-	protected JSpinner spinner;
-	protected int clickCountToStart = 2;
+    protected JSpinner spinner;
+    protected int clickCountToStart = 2;
 
-	public SpinnerCellEditor(SpinnerNumberModel model) {
-		this.spinner = new JSpinner(model);
+    public SpinnerCellEditor(SpinnerNumberModel model) {
+	this.spinner = new JSpinner(model);
+    }
+
+    public Component getTableCellEditorComponent(JTable table, Object value,
+	    boolean isSelected, int row, int column) {
+	spinner.setValue(value);
+	return spinner;
+    }
+
+    public boolean isCellEditable(EventObject e) {
+	if (e instanceof MouseEvent) {
+	    MouseEvent event = (MouseEvent) e;
+	    int clickCount = event.getClickCount();
+	    return clickCount >= clickCountToStart;
 	}
+	return true;
+    }
 
-	public Component getTableCellEditorComponent(JTable table, Object value,
-			boolean isSelected, int row, int column) {
-		spinner.setValue(value);
-		return spinner;
-	}
-
-	public boolean isCellEditable(EventObject e) {
-		if (e instanceof MouseEvent) {
-			MouseEvent event = (MouseEvent) e;
-			int clickCount = event.getClickCount();
-			return clickCount >= clickCountToStart;
-		}
-		return true;
-	}
-
-	public Object getCellEditorValue() {
-		return spinner.getValue();
-	}
+    public Object getCellEditorValue() {
+	return spinner.getValue();
+    }
 
 }

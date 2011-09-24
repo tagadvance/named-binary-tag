@@ -44,63 +44,63 @@ import javax.swing.SwingConstants;
 @SuppressWarnings("serial")
 public class Hyperlink extends JButton {
 
-	private URI uri;
+    private URI uri;
 
-	public Hyperlink(String text, String uri) {
-		super(text);
+    public Hyperlink(String text, String uri) {
+	super(text);
 
-		try {
-			setUri(new URI(uri));
-		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
+	try {
+	    setUri(new URI(uri));
+	} catch (URISyntaxException e) {
+	    throw new IllegalArgumentException(e);
+	}
+
+	init();
+    }
+
+    public Hyperlink(String text, URI uri) {
+	super(text);
+	setUri(uri);
+
+	init();
+    }
+
+    private void init() {
+	setHorizontalAlignment(SwingConstants.LEFT);
+	setBackground(Color.WHITE);
+	setBorder(null);
+	setBorderPainted(false);
+	setOpaque(false);
+
+	String toolTip = getUri().toString();
+	setToolTipText(toolTip);
+
+	addActionListener(new ActionListener() {
+
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		Desktop desktop = Desktop.getDesktop();
+		boolean mail = desktop.isSupported(Action.BROWSE);
+		if (mail) {
+		    try {
+			desktop.browse(uri);
+		    } catch (IOException ex) {
+			ex.printStackTrace();
+		    }
 		}
-		
-		init();
-	}
+	    }
 
-	public Hyperlink(String text, URI uri) {
-		super(text);
-		setUri(uri);
-		
-		init();
-	}
+	});
+    }
 
-	private void init() {
-		setHorizontalAlignment(SwingConstants.LEFT);
-		setBackground(Color.WHITE);
-		setBorder(null);
-		setBorderPainted(false);
-		setOpaque(false);
+    public URI getUri() {
+	return uri;
+    }
 
-		String toolTip = getUri().toString();
-		setToolTipText(toolTip);
-
-		addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Desktop desktop = Desktop.getDesktop();
-				boolean mail = desktop.isSupported(Action.BROWSE);
-				if (mail) {
-					try {
-						desktop.browse(uri);
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				}
-			}
-
-		});
-	}
-
-	public URI getUri() {
-		return uri;
-	}
-
-	private void setUri(URI uri) {
-		if (uri == null)
-			throw new IllegalArgumentException("uri must not be null");
-		this.uri = uri;
-	}
+    private void setUri(URI uri) {
+	if (uri == null)
+	    throw new IllegalArgumentException("uri must not be null");
+	this.uri = uri;
+    }
 
 }

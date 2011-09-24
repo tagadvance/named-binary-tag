@@ -27,43 +27,8 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.world;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
-import org.jnbt.Tag;
-
-public abstract class AbstractRepository implements Repository {
-
-	@Override
-	public Tag<?> load() throws IOException {
-		NBTInputStream is = null;
-		try {
-			is = new NBTInputStream(createInputStream());
-			return is.readTag();
-		} finally {
-			IOUtils.closeQuietly(is);
-		}
-	}
-
-	protected abstract InputStream createInputStream() throws IOException;
-
-	@Override
-	public void save(Tag<?> tag) throws IOException {
-		NBTOutputStream os = null;
-		try {
-			os = new NBTOutputStream(createOutputStream());
-			os.writeTag(tag);
-		} finally {
-			IOUtils.closeQuietly(os);
-		}
-	}
-
-	protected abstract OutputStream createOutputStream() throws IOException;
+public interface TileEntity {
 
 }

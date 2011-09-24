@@ -27,34 +27,60 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.region;
+package com.nbt;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class BlockID {
 
-import com.nbt.repo.Repository;
+    public static final int MIN_X = 0, MAX_X = 16, MIN_Y = 0, MAX_Y = 128,
+	    MIN_Z = 0, MAX_Z = 16;
 
-public interface Chunk extends Repository {
+    private int x, y, z;
 
-	boolean isEmpty();
-	
-	int getX();
-	
-	int getZ();
-	
-	int getSector();
+    public BlockID() {
+	this(MIN_X, MIN_Y, MIN_Z);
+    }
 
-	int getTimestamp();
+    public BlockID(int x, int y, int z) {
+	setX(x);
+	setY(y);
+	setZ(z);
+    }
 
-	int getOffset();
+    public int getX() {
+	return x;
+    }
 
-	int getLength();
+    public void setX(int x) {
+	if (x < MIN_X || x > MAX_X)
+	    throw new IllegalArgumentException(MAX_X + " >= " + x + " >= "
+		    + MIN_X);
+	this.x = x;
+    }
 
-	int getCompressionType();
+    public int getY() {
+	return y;
+    }
 
-	InputStream getInputStream() throws IOException;
-	
-	OutputStream getOutputStream() throws IOException;
-	
+    public void setY(int y) {
+	if (y < MIN_Y || y > MAX_Y)
+	    throw new IllegalArgumentException(MAX_Y + " >= " + y + " >= "
+		    + MIN_Y);
+	this.y = y;
+    }
+
+    public int getZ() {
+	return z;
+    }
+
+    public void setZ(int z) {
+	if (z < MIN_Z || z > MAX_Z)
+	    throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
+		    + MIN_Z);
+	this.z = z;
+    }
+
+    public String toString() {
+	return "X = " + getX() + ", Y = " + getY() + ", Z = " + getZ();
+    }
+
 }

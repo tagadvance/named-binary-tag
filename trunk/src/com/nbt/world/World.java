@@ -27,74 +27,20 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package resources;
+package com.nbt.world;
 
-import java.awt.image.BufferedImage;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.List;
-import java.util.MissingResourceException;
 
-import javax.imageio.ImageIO;
+import org.jnbt.Tag;
 
-import org.apache.commons.io.IOUtils;
+public interface World {
 
-import au.com.bytecode.opencsv.CSVReader;
+    List<Region> getRegions();
 
-public class Resource {
+    Region getRegion(int x, int z);
 
-    public Resource() {
-
-    }
-
-    public List<String[]> getCSV(String name) {
-	return new ResourceLoader<List<String[]>>(name) {
-	    @Override
-	    protected List<String[]> get(URL url) throws Exception {
-		CSVReader reader = null;
-		try {
-		    reader = new CSVReader(new InputStreamReader(
-			    url.openStream()));
-		    return reader.readAll();
-		} finally {
-		    IOUtils.closeQuietly(reader);
-		}
-	    }
-	}.get();
-    }
-
-    public BufferedImage getImage(String name) {
-	return new ResourceLoader<BufferedImage>(name) {
-	    @Override
-	    protected BufferedImage get(URL url) throws Exception {
-		return ImageIO.read(url);
-	    }
-	}.get();
-    }
-
-    private static abstract class ResourceLoader<V> {
-
-	final String name;
-
-	public ResourceLoader(String name) {
-	    if (name == null)
-		throw new IllegalArgumentException("name must not be null");
-	    this.name = name;
-	}
-
-	public final V get() throws MissingResourceException {
-	    URL url = Resource.class.getResource(name);
-	    try {
-		return get(url);
-	    } catch (Exception e) {
-		String className = Resource.class.getName();
-		throw new MissingResourceException(e.getMessage(), className,
-			name);
-	    }
-	}
-
-	protected abstract V get(URL url) throws Exception;
-
-    }
+    Tag<?> getTag(int chunkX, int chunkZ);
+    
+    String getName();
 
 }

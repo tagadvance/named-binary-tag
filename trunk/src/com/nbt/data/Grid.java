@@ -27,74 +27,81 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package resources;
+package com.nbt.data;
 
 import java.awt.image.BufferedImage;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.List;
-import java.util.MissingResourceException;
 
-import javax.imageio.ImageIO;
+public class Grid {
 
-import org.apache.commons.io.IOUtils;
+    private BufferedImage image;
+    private int rows, columns;
+    private BufferedImage[] subimages;
 
-import au.com.bytecode.opencsv.CSVReader;
-
-public class Resource {
-
-    public Resource() {
-
+    public Grid(BufferedImage image, int rows, int columns) {
+	setImage(image);
+	setRows(rows);
+	setColumns(columns);
+	updateSubimages();
     }
 
-    public List<String[]> getCSV(String name) {
-	return new ResourceLoader<List<String[]>>(name) {
-	    @Override
-	    protected List<String[]> get(URL url) throws Exception {
-		CSVReader reader = null;
-		try {
-		    reader = new CSVReader(new InputStreamReader(
-			    url.openStream()));
-		    return reader.readAll();
-		} finally {
-		    IOUtils.closeQuietly(reader);
-		}
-	    }
-	}.get();
-    }
+    protected void updateSubimages() {
+	final int rows = getRows(), columns = getColumns();
+	final int width = image.getWidth(), height = image.getHeight();
+	if (width < columns || (width >= columns && width % columns > 0))
+	    throw new IllegalArgumentException();
+	if (height < rows || (height >= rows && height % rows > 0))
+	    throw new IllegalArgumentException();
 
-    public BufferedImage getImage(String name) {
-	return new ResourceLoader<BufferedImage>(name) {
-	    @Override
-	    protected BufferedImage get(URL url) throws Exception {
-		return ImageIO.read(url);
-	    }
-	}.get();
-    }
+	int length = rows * columns;
+	this.subimages = new BufferedImage[length];
 
-    private static abstract class ResourceLoader<V> {
+	int w = width / columns;
+	int h = height / rows;
 
-	final String name;
-
-	public ResourceLoader(String name) {
-	    if (name == null)
-		throw new IllegalArgumentException("name must not be null");
-	    this.name = name;
-	}
-
-	public final V get() throws MissingResourceException {
-	    URL url = Resource.class.getResource(name);
-	    try {
-		return get(url);
-	    } catch (Exception e) {
-		String className = Resource.class.getName();
-		throw new MissingResourceException(e.getMessage(), className,
-			name);
+	int i = 0;
+	for (int c = 0; c < columns; c++) {
+	    int y = c * h;
+	    for (int r = 0; r < rows; r++) {
+		int x = r * w;
+		subimages[i++] = image.getSubimage(x, y, w, h);
 	    }
 	}
+    }
 
-	protected abstract V get(URL url) throws Exception;
+    public BufferedImage getImage() {
+	return image;
+    }
 
+    public void setImage(BufferedImage image) {
+	if (image == null)
+	    throw new IllegalArgumentException("image must not be null");
+	this.image = image;
+    }
+
+    public BufferedImage subimage(int i) {
+	return subimages[i];
+    }
+
+    public BufferedImage subimage(int x, int y) {
+	int cols = getColumns();
+	int index = (y * cols) + x;
+	return subimages[index];
+    }
+
+    public int getRows() {
+	return rows;
+    }
+
+    public void setRows(int rows) {
+	this.rows = rows;
+    }
+
+    public int getColumns() {
+	return columns;
+    }
+
+    public void setColumns(int columns) {
+	this.columns = columns;
     }
 
 }

@@ -34,41 +34,41 @@ import java.io.File;
 
 import javax.swing.UIManager;
 
+// TODO: lazy load nbt tree
 public class Main {
 
-	public static void main(final String[] args) {
-		//setPreferredLookAndFeel();
-		EventQueue.invokeLater(new Runnable() {
+    public static void main(final String[] args) {
+	// setPreferredLookAndFeel();
+	EventQueue.invokeLater(new Runnable() {
 
-			public void run() {
-				GUI gui = new GUI();
-				gui.setVisible(true);
+	    public void run() {
+		GUI gui = new GUI();
+		gui.setVisible(true);
 
-				if (args.length > 0) {
-					File file = new File(args[0]);
-					if (file.canRead())
-						gui.doImport(file);
-				}
-			}
-
-		});
-	}
-
-	@SuppressWarnings("unused")
-	private static void setPreferredLookAndFeel() {
-		String[] lafs = {
-				//"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
-				UIManager.getSystemLookAndFeelClassName(),
-				UIManager.getCrossPlatformLookAndFeelClassName()
-		};
-		for (String laf : lafs) {
-			try {
-				UIManager.setLookAndFeel(laf);
-				break;
-			} catch (Exception e) {
-				//e.printStackTrace();
-			}
+		if (args.length > 0) {
+		    File file = new File(args[0]);
+		    if (file.canRead())
+			gui.doImport(file);
 		}
+	    }
+
+	});
+    }
+
+    @SuppressWarnings("unused")
+    private static void setPreferredLookAndFeel() {
+	String[] lafs = {
+		// "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
+		UIManager.getSystemLookAndFeelClassName(),
+		UIManager.getCrossPlatformLookAndFeelClassName() };
+	for (String laf : lafs) {
+	    try {
+		UIManager.setLookAndFeel(laf);
+		break;
+	    } catch (Exception e) {
+		// e.printStackTrace();
+	    }
 	}
+    }
 
 }

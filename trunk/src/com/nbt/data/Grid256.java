@@ -27,31 +27,17 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.repo;
+package com.nbt.data;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
 
-import com.nbt.region.RegionFile;
+public class Grid256 extends Grid {
 
-public class RegionRepository extends AbstractRepository {
+    private static final int ROWS = 16;
+    private static final int COLUMNS = 16;
 
-	private RegionFile regionFile;
-
-	private RegionRepository(RegionFile file) {
-		super();
-
-	}
-
-	@Override
-	protected InputStream createInputStream() throws IOException {
-		return null;
-	}
-
-	@Override
-	protected OutputStream createOutputStream() throws IOException {
-		return null;
-	}
+    public Grid256(BufferedImage image) {
+	super(image, ROWS, COLUMNS);
+    }
 
 }

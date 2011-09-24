@@ -29,101 +29,130 @@
 
 package com.nbt;
 
-import java.awt.Point;
-
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
-import org.jnbt.ByteArrayTag;
 
 public class NBTTreeTableModel extends AbstractTreeTableModel {
 
-	static protected String[] columnNames = {
-			"Name", "Value"
-	};
+    static protected String[] columnNames = { "Name", "Value" };
 
-	protected NBTTreeTable parent;
+    // TODO: this violates MVC
+    protected NBTTreeTable parent;
 
-	public NBTTreeTableModel(Object root) {
-		super(root);
+    public NBTTreeTableModel(Object root) {
+	super(root);
+    }
+
+    public NBTTreeTable getParent() {
+	if (this.parent == null)
+	    throw new IllegalStateException("oops...");
+	return this.parent;
+    }
+
+    protected void setParent(NBTTreeTable parent) {
+	this.parent = parent;
+    }
+
+    @Override
+    public int getColumnCount() {
+	return columnNames.length;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+	return columnNames[column];
+    }
+
+    @Override
+    public boolean isLeaf(Object node) {
+	if (node instanceof LazyBranch) {
+	    LazyBranch lazyBranch = (LazyBranch) node;
+	    return !lazyBranch.hasChildren();
 	}
 
-	public NBTTreeTable getParent() {
-		if (this.parent == null)
-			throw new IllegalStateException("oops...");
-		return this.parent;
+	return super.isLeaf(node);
+    }
+
+    @Override
+    public boolean isCellEditable(Object node, int column) {
+	if (node instanceof NBTNode) {
+	    NBTNode n = (NBTNode) node;
+	    return n.isCellEditable(column);
 	}
 
-	protected void setParent(NBTTreeTable parent) {
-		this.parent = parent;
+	return super.isCellEditable(node, column);
+    }
+
+    @Override
+    public Object getValueAt(Object node, int column) {
+	if (node instanceof NBTNode) {
+	    NBTNode n = (NBTNode) node;
+	    return n.getValueAt(column);
 	}
 
-	@Override
-	public int getColumnCount() {
-		return columnNames.length;
+	return null;
+    }
+
+    @Override
+    public void setValueAt(Object value, Object node, int column) {
+	if (node instanceof NBTNode) {
+	    NBTNode n = (NBTNode) node;
+	    n.setValueAt(value, column);
+	    return;
 	}
 
-	@Override
-	public String getColumnName(int column) {
-		return columnNames[column];
+	super.setValueAt(value, node, column);
+    }
+
+    @Override
+    public Object getChild(Object parent, int index) {
+	if (parent instanceof NBTBranch) {
+	    NBTBranch branch = (NBTBranch) parent;
+	    return branch.getChild(index);
 	}
+	return null;
+    }
 
-	@Override
-	public boolean isCellEditable(Object node, int column) {
-		if (node instanceof Node) {
-			Node n = (Node) node;
-			return n.isCellEditable(column);
-		}
-
-		return super.isCellEditable(node, column);
+    @Override
+    public int getChildCount(Object parent) {
+	if (parent instanceof LazyBranch) {
+	    LazyBranch lazyBranch = (LazyBranch) parent;
+	    if (lazyBranch.isPopulated()) {
+		Object[] children = lazyBranch.getChildren();
+		return children.length;
+	    }
+	    return 0;
 	}
-
-	@Override
-	public Object getValueAt(Object node, int column) {
-		if (node instanceof Node) {
-			Node n = (Node) node;
-			return n.getValueAt(column);
-		}
-
-		return null;
+	if (parent instanceof NBTBranch) {
+	    NBTBranch branch = (NBTBranch) parent;
+	    return branch.getChildCount();
 	}
+	return 0;
+    }
 
-	@Override
-	public void setValueAt(Object value, Object node, int column) {
-		if (node instanceof Node) {
-			Node n = (Node) node;
-			n.setValueAt(value, column);
-			return;
-		}
-
-		super.setValueAt(value, node, column);
+    @Override
+    public int getIndexOfChild(Object parent, Object child) {
+	if (parent instanceof NBTBranch) {
+	    NBTBranch branch = (NBTBranch) parent;
+	    return branch.getIndexOfChild(child);
 	}
+	return -1;
+    }
 
-	@Override
-	public Object getChild(Object parent, int index) {
-		if (parent instanceof Branch) {
-			Branch branch = (Branch) parent;
-			return branch.getChild(index);
-		}
-		return null;
-	}
-
-	@Override
-	public int getChildCount(Object parent) {
-		if (parent instanceof Branch) {
-			Branch branch = (Branch) parent;
-			return branch.getChildCount();
-		}
-		return 0;
-	}
-
-	@Override
-	public int getIndexOfChild(Object parent, Object child) {
-		if (parent instanceof Branch) {
-			Branch branch = (Branch) parent;
-			return branch.getIndexOfChild(child);
-		}
-		return -1;
-	}
+    /**
+     * @see TreeModelEvent#TreeModelEvent(Object, TreePath, int[], Object[])
+     * @see TreeModelListener#treeNodesInserted(TreeModelEvent)
+     */
+    protected void fireTreeNodesInserted(Object source, TreePath path,
+	    int[] childIndices, Object[] children) {
+	TreeModelEvent event = new TreeModelEvent(source, path, childIndices,
+		children);
+	TreeModelListener[] listeners = getTreeModelListeners();
+	for (int i = listeners.length - 1; i >= 0; --i)
+	    listeners[i].treeNodesInserted(event);
+    }
 
 }

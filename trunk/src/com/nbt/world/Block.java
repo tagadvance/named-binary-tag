@@ -27,43 +27,38 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.region;
+package com.nbt.world;
 
-public class ChunkLocation {
+import java.util.List;
 
-	public static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
+public interface Block {
 
-	private int x, z;
+    int getBlockID();
 
-	public ChunkLocation() {
-		this(MIN_X, MIN_Z);
-	}
+    int getData();
 
-	public ChunkLocation(int x, int z) {
-		setX(x);
-		setZ(z);
-	}
+    int getX();
 
-	public int getX() {
-		return x;
-	}
+    int getY();
 
-	public void setX(int x) {
-		if (x < MIN_X || x > MAX_X)
-			throw new IllegalArgumentException(MAX_X + " >= " + x + " >= "
-					+ MIN_X);
-		this.x = x;
-	}
+    int getZ();
 
-	public int getZ() {
-		return z;
-	}
+    int getSkyLight();
 
-	public void setZ(int z) {
-		if (z < MIN_Z || z > MAX_Z)
-			throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
-					+ MIN_Z);
-		this.z = z;
-	}
+    int getBlockLight();
+
+    int getHeight();
+
+    List<Entity> getEntities();
+
+    List<TileEntity> getTileEntities();
+
+    long getLastUpdate();
+
+    int getChunkX();
+
+    int getChunkY();
+
+    boolean isTerrainPopulated();
 
 }

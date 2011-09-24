@@ -27,74 +27,43 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package resources;
+package com.nbt.data;
 
-import java.awt.image.BufferedImage;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.MissingResourceException;
+import java.util.Map;
 
-import javax.imageio.ImageIO;
+public abstract class Register<E extends Record> {
 
-import org.apache.commons.io.IOUtils;
+    protected final Map<Integer, E> map;
 
-import au.com.bytecode.opencsv.CSVReader;
-
-public class Resource {
-
-    public Resource() {
-
+    public Register() {
+	this.map = new LinkedHashMap<Integer, E>();
     }
 
-    public List<String[]> getCSV(String name) {
-	return new ResourceLoader<List<String[]>>(name) {
-	    @Override
-	    protected List<String[]> get(URL url) throws Exception {
-		CSVReader reader = null;
-		try {
-		    reader = new CSVReader(new InputStreamReader(
-			    url.openStream()));
-		    return reader.readAll();
-		} finally {
-		    IOUtils.closeQuietly(reader);
-		}
-	    }
-	}.get();
-    }
-
-    public BufferedImage getImage(String name) {
-	return new ResourceLoader<BufferedImage>(name) {
-	    @Override
-	    protected BufferedImage get(URL url) throws Exception {
-		return ImageIO.read(url);
-	    }
-	}.get();
-    }
-
-    private static abstract class ResourceLoader<V> {
-
-	final String name;
-
-	public ResourceLoader(String name) {
-	    if (name == null)
-		throw new IllegalArgumentException("name must not be null");
-	    this.name = name;
+    public void load(List<String[]> rows) {
+	if (rows == null)
+	    throw new IllegalArgumentException("rows must not be null");
+	for (String[] row : rows) {
+	    E value = createRecord(row);
+	    int key = value.getID();
+	    map.put(key, value);
 	}
+    }
 
-	public final V get() throws MissingResourceException {
-	    URL url = Resource.class.getResource(name);
-	    try {
-		return get(url);
-	    } catch (Exception e) {
-		String className = Resource.class.getName();
-		throw new MissingResourceException(e.getMessage(), className,
-			name);
-	    }
-	}
+    protected abstract E createRecord(String[] row);
 
-	protected abstract V get(URL url) throws Exception;
+    public E getRecord(byte b) {
+	int id = 0xFF & b;
+	return getRecord(id);
+    }
 
+    public E getRecord(int id) {
+	return map.get(id);
+    }
+
+    public void clear() {
+	map.clear();
     }
 
 }
