@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="NBT Kit" basedir="." default="create_run_jar">
+	<property name="dist" location="dist" />
+	<target name="create_run_jar">
+		<jar destfile="${dist}/NBT Kit.jar">
+			<manifest>
+				<attribute name="Main-Class" value="com.nbt.Main" />
+				<attribute name="Class-Path" value=". lib/commons-io-2.0.1/commons-io-2.0.1.jar lib/commons-lang3-3.0.1/commons-lang3-3.0.1.jar lib/guava-r09/guava-r09.jar lib/jlfgr-1_0/jlfgr-1_0.jar lib/swingx-1.6.2/swingx-core-1.6.2.jar" />
+			</manifest>
+			<fileset dir="./bin" />
+		</jar>
+		<delete dir="${dist}/lib" />
+		<mkdir dir="${dist}/lib" />
+		<copy todir="${dist}/lib">
+			<fileset dir="dependencies">
+				<include name="**" />
+			</fileset>
+		</copy>
+	</target>
+</project>
