@@ -35,7 +35,7 @@ package org.jnbt;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nbt.Branch;
+import com.nbt.NBTBranch;
 
 /**
  * The <code>TAG_List</code> tag.
@@ -44,109 +44,109 @@ import com.nbt.Branch;
  * @author Taggart Spilman
  * 
  */
-public class ListTag extends Tag<List<Tag<?>>> implements Branch {
+public class ListTag extends Tag<List<Tag<?>>> implements NBTBranch {
 
-	/**
-	 * The type.
-	 */
-	private Class<? extends Tag> type;
+    /**
+     * The type.
+     */
+    private Class<? extends Tag> type;
 
-	/**
-	 * Creates the tag.
-	 * 
-	 * @param name
-	 *            The name.
-	 * @param type
-	 *            The type of item in the list.
-	 * @param value
-	 *            The value.
-	 */
-	public ListTag(String name, List<Tag<?>> value, Class<? extends Tag> type) {
-		super(name, value);
-		setType(type);
+    /**
+     * Creates the tag.
+     * 
+     * @param name
+     *            The name.
+     * @param type
+     *            The type of item in the list.
+     * @param value
+     *            The value.
+     */
+    public ListTag(String name, List<Tag<?>> value, Class<? extends Tag> type) {
+	super(name, value);
+	setType(type);
+    }
+
+    /**
+     * Gets the type of item in this list.
+     * 
+     * @return The type of item in this list.
+     */
+    public Class<? extends Tag> getType() {
+	return type;
+    }
+
+    private void setType(Class<? extends Tag> type) {
+	if (type == null)
+	    throw new IllegalArgumentException("type must not be null");
+	this.type = type;
+    }
+
+    @Override
+    protected List<Tag<?>> createDefaultValue() {
+	return new ArrayList<Tag<?>>();
+    }
+
+    @Override
+    public boolean isCellEditable(int column) {
+	return false;
+    }
+
+    @Override
+    public Object getValueAt(int column) {
+	switch (column) {
+	case COLUMN_VALUE:
+	    List<Tag<?>> list = getValue();
+	    int size = list.size();
+	    return size + (size != 0 && size > 1 ? " entries" : " entry");
+	default:
+	    return super.getValueAt(column);
 	}
+    }
 
-	/**
-	 * Gets the type of item in this list.
-	 * 
-	 * @return The type of item in this list.
-	 */
-	public Class<? extends Tag> getType() {
-		return type;
-	}
+    @Override
+    public Object getChild(int index) {
+	List<?> list = getValue();
+	return list.get(index);
+    }
 
-	private void setType(Class<? extends Tag> type) {
-		if (type == null)
-			throw new IllegalArgumentException("type must not be null");
-		this.type = type;
-	}
+    @Override
+    public int getChildCount() {
+	List<?> list = getValue();
+	return list.size();
+    }
 
-	@Override
-	protected List<Tag<?>> createDefaultValue() {
-		return new ArrayList<Tag<?>>();
+    @Override
+    public int getIndexOfChild(Object child) {
+	if (child != null) {
+	    List<Tag<?>> list = getValue();
+	    for (int i = 0; i < list.size(); i++) {
+		Tag<?> tag = list.get(i);
+		if (child.equals(tag))
+		    return i;
+	    }
 	}
+	return -1;
+    }
 
-	@Override
-	public boolean isCellEditable(int column) {
-		return false;
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder("TAG_List");
+	String name = getName();
+	if (!name.isEmpty())
+	    sb.append("(\"").append(name).append("\")");
+	List<Tag<?>> value = getValue();
+	int size = value.size();
+	Class<? extends Tag> type = getType();
+	String typeName = NBTUtils.getTypeName(type);
+	sb.append(": ").append(size).append(" entries of type ")
+		.append(typeName).append("\r\n{\r\n");
+	for (Tag<?> tag : value) {
+	    String s = tag.toString();
+	    s = s.replaceAll("\r\n", "\r\n   ");
+	    sb.append("   ").append(s).append("\r\n");
 	}
-
-	@Override
-	public Object getValueAt(int column) {
-		switch (column) {
-			case COLUMN_VALUE:
-				List<Tag<?>> list = getValue();
-				int size = list.size();
-				return size + (size != 0 && size > 1 ? " entries" : " entry");
-			default:
-				return super.getValueAt(column);
-		}
-	}
-
-	@Override
-	public Object getChild(int index) {
-		List<?> list = getValue();
-		return list.get(index);
-	}
-
-	@Override
-	public int getChildCount() {
-		List<?> list = getValue();
-		return list.size();
-	}
-
-	@Override
-	public int getIndexOfChild(Object child) {
-		if (child != null) {
-			List<Tag<?>> list = getValue();
-			for (int i = 0; i < list.size(); i++) {
-				Tag<?> tag = list.get(i);
-				if (child.equals(tag))
-					return i;
-			}
-		}
-		return -1;
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("TAG_List");
-		String name = getName();
-		if (!name.isEmpty())
-			sb.append("(\"").append(name).append("\")");
-		List<Tag<?>> value = getValue();
-		int size = value.size();
-		Class<? extends Tag> type = getType();
-		String typeName = NBTUtils.getTypeName(type);
-		sb.append(": ").append(size).append(" entries of type ")
-				.append(typeName).append("\r\n{\r\n");
-		for (Tag<?> tag : value) {
-			String s = tag.toString();
-			s = s.replaceAll("\r\n", "\r\n   ");
-			sb.append("   ").append(s).append("\r\n");
-		}
-		sb.append("}");
-		return sb.toString();
-	}
+	sb.append("}");
+	return sb.toString();
+    }
 
 }

@@ -40,16 +40,16 @@ package org.jnbt;
  * 
  */
 public class IntTag extends Tag<Integer> {
-	
-	public static final String TAG_NAME = "TAG_Int"; 
 
-	public IntTag(String name, int value) {
-		super(name, value);
-	}
+    public static final String TAG_NAME = "TAG_Int";
 
-	@Override
-	public String toString() {
-		return toString(TAG_NAME);
-	}
-	
+    public IntTag(String name, int value) {
+	super(name, value);
+    }
+
+    @Override
+    public String toString() {
+	return toString(TAG_NAME);
+    }
+
 }

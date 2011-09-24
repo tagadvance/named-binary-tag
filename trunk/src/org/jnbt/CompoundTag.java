@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.nbt.Branch;
+import com.nbt.NBTBranch;
 
 /**
  * The <code>TAG_Compound</code> tag.
@@ -46,7 +46,7 @@ import com.nbt.Branch;
  * @author Taggart Spilman
  * 
  */
-public class CompoundTag extends Tag<Map<String, Tag<?>>> implements Branch {
+public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
 
 	public static final String TAG_NAME = "TAG_Compound";
 

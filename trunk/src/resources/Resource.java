@@ -37,44 +37,42 @@ import javax.imageio.ImageIO;
 
 public class Resource {
 
-	public Resource() {
+    public Resource() {
 
+    }
+
+    public BufferedImage getImage(String name) {
+	return new ResourceLoader<BufferedImage>(name) {
+	    @Override
+	    protected BufferedImage get(URL url) throws Exception {
+		return ImageIO.read(url);
+	    }
+	}.get();
+    }
+
+    private static abstract class ResourceLoader<V> {
+
+	final String name;
+
+	public ResourceLoader(String key) {
+	    if (key == null)
+		throw new IllegalArgumentException("");
+	    this.name = key;
 	}
 
-	public BufferedImage getImage(String name) {
-		return new ResourceLoader<BufferedImage>(name) {
-
-			@Override
-			protected BufferedImage get(URL url) throws Exception {
-				return ImageIO.read(url);
-			}
-
-		}.get();
+	public final V get() throws MissingResourceException {
+	    URL url = Resource.class.getResource(name);
+	    try {
+		return get(url);
+	    } catch (Exception e) {
+		String className = Resource.class.getName();
+		throw new MissingResourceException(e.getMessage(), className,
+			name);
+	    }
 	}
 
-	private static abstract class ResourceLoader<V> {
+	protected abstract V get(URL url) throws Exception;
 
-		final String name;
-
-		public ResourceLoader(String key) {
-			if (key == null)
-				throw new IllegalArgumentException("");
-			this.name = key;
-		}
-
-		public final V get() throws MissingResourceException {
-			URL url = Resource.class.getResource(name);
-			try {
-				return get(url);
-			} catch (Exception e) {
-				String className = Resource.class.getName();
-				throw new MissingResourceException(e.getMessage(), className,
-						name);
-			}
-		}
-
-		protected abstract V get(URL url) throws Exception;
-
-	}
+    }
 
 }

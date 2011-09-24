@@ -1,6 +1,6 @@
 package org.jnbt;
 
-import com.nbt.Branch;
+import com.nbt.NBTBranch;
 import com.nbt.ByteWrapper;
 import com.tag.HexUtils;
 
@@ -43,72 +43,72 @@ import com.tag.HexUtils;
  * @author Taggart Spilman
  * 
  */
-public class ByteArrayTag extends Tag<byte[]> implements Branch {
+public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 
-	public static final String TAG_NAME = "TAG_Byte_Array";
+    public static final String TAG_NAME = "TAG_Byte_Array";
 
-	public ByteArrayTag(String name) {
-		super(name);
+    public ByteArrayTag(String name) {
+	super(name);
+    }
+
+    public ByteArrayTag(String name, byte[] value) {
+	super(name, value);
+    }
+
+    @Override
+    protected byte[] createDefaultValue() {
+	return new byte[] {};
+    }
+
+    @Override
+    public boolean isCellEditable(int column) {
+	return false;
+    }
+
+    @Override
+    public Object getValueAt(int column) {
+	switch (column) {
+	case COLUMN_VALUE:
+	    byte[] bytes = getValue();
+	    return bytes.length + " bytes";
+	default:
+	    return super.getValueAt(column);
 	}
+    }
 
-	public ByteArrayTag(String name, byte[] value) {
-		super(name, value);
-	}
+    @Override
+    public Object getChild(int index) {
+	byte[] value = getValue();
+	return new ByteWrapper(value, index);
+    }
 
-	@Override
-	protected byte[] createDefaultValue() {
-		return new byte[] {};
-	}
+    @Override
+    public int getChildCount() {
+	byte[] value = getValue();
+	return value.length;
+    }
 
-	@Override
-	public boolean isCellEditable(int column) {
-		return false;
+    @Override
+    public int getIndexOfChild(Object child) {
+	if (child instanceof Integer) {
+	    return (Integer) child;
 	}
+	return -1;
+    }
 
-	@Override
-	public Object getValueAt(int column) {
-		switch (column) {
-			case COLUMN_VALUE:
-				byte[] bytes = getValue();
-				return bytes.length + " bytes";
-			default:
-				return super.getValueAt(column);
-		}
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder(TAG_NAME);
+	String name = getName();
+	if (!name.isEmpty())
+	    sb.append("(\"").append(name).append("\")");
+	sb.append(":");
+	for (byte b : getValue()) {
+	    sb.append(" ");
+	    String hex = HexUtils.byteToHex(b);
+	    sb.append(hex);
 	}
-
-	@Override
-	public Object getChild(int index) {
-		byte[] value = getValue();
-		return new ByteWrapper(value, index);
-	}
-
-	@Override
-	public int getChildCount() {
-		byte[] value = getValue();
-		return value.length;
-	}
-
-	@Override
-	public int getIndexOfChild(Object child) {
-		if (child instanceof Integer) {
-			return (Integer) child;
-		}
-		return -1;
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder(TAG_NAME);
-		String name = getName();
-		if (!name.isEmpty())
-			sb.append("(\"").append(name).append("\")");
-		sb.append(":");
-		for (byte b : getValue()) {
-			sb.append(" ");
-			String hex = HexUtils.byteToHex(b);
-			sb.append(hex);
-		}
-		return sb.toString();
-	}
+	return sb.toString();
+    }
 
 }
