@@ -97,7 +97,7 @@ public class HexCellEditor extends SpinnerCellEditor {
 
 	    Number n = (Number) value;
 	    int i = n.intValue();
-	    return HexUtils.intToHex(i);
+	    return HexUtils.toHex(i);
 	}
 
     }

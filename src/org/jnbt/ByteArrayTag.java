@@ -104,7 +104,7 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	sb.append(":");
 	for (byte b : getValue()) {
 	    sb.append(" ");
-	    String hex = HexUtils.byteToHex(b);
+	    String hex = HexUtils.toHex(b);
 	    sb.append(hex);
 	}
 	return sb.toString();

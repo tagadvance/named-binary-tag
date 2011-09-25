@@ -102,10 +102,13 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.world.Region;
 import com.nbt.world.WorldDirectory;
+import com.nbt.world.WorldRegion;
 import com.tag.FramePreferences;
 import com.tag.Hyperlink;
 import com.tag.ImageFactory;
+import com.tag.SwingWorkerUnlimited;
 
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")
@@ -907,7 +910,7 @@ public class GUI extends JFrame {
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 	setCursor(waitCursor);
 
-	new SwingWorker<CompoundTag, Void>() {
+	SwingWorkerUnlimited.execure(new SwingWorker<CompoundTag, Void>() {
 
 	    @Override
 	    protected CompoundTag doInBackground() throws Exception {
@@ -941,32 +944,73 @@ public class GUI extends JFrame {
 		setCursor(defaultCursor);
 	    }
 
-	}.execute();
+	});
     }
 
     public void doImportMCR(final File file) {
+	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+	setCursor(waitCursor);
 
+	SwingWorkerUnlimited.execure(new SwingWorker<Region, Void>() {
+
+	    @Override
+	    protected Region doInBackground() throws Exception {
+		WorldRegion region = new WorldRegion(file);
+		region.getChildren(); // populate
+		return region;
+	    }
+
+	    @Override
+	    protected void done() {
+		Region region = null;
+		try {
+		    region = get();
+		} catch (InterruptedException e) {
+		    e.printStackTrace();
+		} catch (ExecutionException e) {
+		    e.printStackTrace();
+		    Throwable cause = ExceptionUtils.getRootCause(e);
+		    showErrorDialog(cause.getMessage());
+		    return;
+		}
+		textFile.setText(file.getAbsolutePath());
+
+		updateTreeTable(region);
+
+		Cursor defaultCursor = Cursor.getDefaultCursor();
+		setCursor(defaultCursor);
+	    }
+
+	});
     }
 
     public void doImportDirectory(final File base) {
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 	setCursor(waitCursor);
 
-	SwingUtilities.invokeLater(new Runnable() {
+	SwingWorkerUnlimited.execure(new SwingWorker<WorldDirectory, Void>() {
 
 	    @Override
-	    public void run() {
-		WorldDirectory directory = null;
+	    protected WorldDirectory doInBackground() throws Exception {
+		return new WorldDirectory(base);
+	    }
+
+	    @Override
+	    protected void done() {
+		WorldDirectory world = null;
 		try {
-		    directory = new WorldDirectory(base);
-		} catch (Exception e) {
+		    world = get();
+		} catch (InterruptedException e) {
 		    e.printStackTrace();
-		    showErrorDialog(e.getMessage());
+		} catch (ExecutionException e) {
+		    e.printStackTrace();
+		    Throwable cause = ExceptionUtils.getRootCause(e);
+		    showErrorDialog(cause.getMessage());
 		    return;
 		}
 		textFile.setText(base.getAbsolutePath());
 
-		updateTreeTable(directory);
+		updateTreeTable(world);
 
 		Cursor defaultCursor = Cursor.getDefaultCursor();
 		setCursor(defaultCursor);
@@ -990,7 +1034,7 @@ public class GUI extends JFrame {
 	NBTTreeTableModel model = treeTable.getTreeTableModel();
 	final Object root = model.getRoot();
 
-	new SwingWorker<Void, Void>() {
+	SwingWorkerUnlimited.execure(new SwingWorker<Void, Void>() {
 
 	    @Override
 	    protected Void doInBackground() throws Exception {
@@ -1021,7 +1065,7 @@ public class GUI extends JFrame {
 		}
 	    }
 
-	}.execute();
+	});
     }
 
     public void addTag(Tag<?> tag) {
@@ -1083,8 +1127,6 @@ public class GUI extends JFrame {
 	NBTTreeTableModel model = treeTable.getTreeTableModel();
 	Object root = model.getRoot();
 	updateTreeTable(root);
-
-	treeTable.expandAll();
     }
 
     protected void updateTreeTable(Object root) {

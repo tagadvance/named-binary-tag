@@ -71,6 +71,7 @@ import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
 import com.tag.HexUtils;
 import com.tag.ImageFactory;
+import com.tag.SwingWorkerUnlimited;
 
 /**
  * 
@@ -112,7 +113,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    String text;
 		    if (value instanceof Byte) {
 			byte b = (Byte) value;
-			text = "0x" + HexUtils.byteToHex(b);
+			text = "0x" + HexUtils.toHex(b);
 		    } else {
 			NumberFormat nf = NumberFormat.getNumberInstance();
 			text = nf.format(value);
@@ -142,10 +143,10 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 
 	    @Override
 	    public Component getTreeCellRendererComponent(JTree tree,
-		    Object value, boolean sel, boolean expanded, boolean leaf,
-		    int row, boolean hasFocus) {
-		super.getTreeCellRendererComponent(tree, value, sel, expanded,
-			leaf, row, hasFocus);
+		    Object value, boolean isSelected, boolean isExpanded,
+		    boolean isLeaf, int row, boolean hasFocus) {
+		super.getTreeCellRendererComponent(tree, value, isSelected,
+			isExpanded, isLeaf, row, hasFocus);
 
 		if (value instanceof NBTNode) {
 		    NBTNode node = (NBTNode) value;
@@ -165,6 +166,12 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    ByteArrayTag tag = byteWrapper.getTag();
 		    String name = tag.getName();
 		    if ("Blocks".equals(name)) {
+			BlockFormat format = BlockFormat.getInstance();
+			int index = byteWrapper.getIndex();
+			BlockID blockID = format.getBlockID(index);
+			String text = blockID.toString();
+			setText(text);
+			
 			byte b = (Byte) byteWrapper
 				.getValueAt(NBTNode.COLUMN_VALUE);
 			SpriteRecord record = register.getRecord(b);
@@ -236,7 +243,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	    resetCursor();
 	    return;
 	}
-	new SwingWorker<Void, Void>() {
+	SwingWorkerUnlimited.execure(new SwingWorker<Void, Void>() {
 
 	    @Override
 	    protected Void doInBackground() throws Exception {
@@ -257,7 +264,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		resetCursor();
 	    }
 
-	}.execute();
+	});
     }
 
     private void resetCursor() {
