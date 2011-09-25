@@ -37,6 +37,7 @@ import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -86,6 +87,12 @@ public class NBTInputStream implements Closeable {
 	    is.reset();
 	    this.is = new DataInputStream(is);
 	}
+    }
+
+    public NBTInputStream(InputStream is, boolean gzip) throws IOException {
+	if (gzip)
+	    is = new GZIPInputStream(is);
+	this.is = new DataInputStream(is);
     }
 
     /**

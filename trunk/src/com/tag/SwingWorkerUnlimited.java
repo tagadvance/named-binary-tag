@@ -29,31 +29,27 @@
 
 package com.tag;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-public class HexUtils {
+import javax.swing.SwingWorker;
 
-    private HexUtils() {
+/**
+ * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6880336
+ */
+public class SwingWorkerUnlimited {
 
+    private static Executor pool;
+    static {
+	pool = Executors.newCachedThreadPool();
     }
 
-    public static int unsigned(byte b) {
-	return 0xFF & b;
+    private SwingWorkerUnlimited() {
+	super();
     }
 
-    public static String toHex(byte b) {
-	int i = unsigned(b);
-	return toHex(i);
-    }
-
-    public static String toHex(int i) {
-	String hex = Integer.toHexString(i);
-	int size = 2;
-	hex = StringUtils.leftPad(hex, size, '0');
-	hex = hex.toUpperCase();
-	int length = hex.length();
-	int beginIndex = length - size;
-	return hex.substring(beginIndex);
+    public static <T, V> void execure(SwingWorker<T, V> swingWorker) {
+	pool.execute(swingWorker);
     }
 
 }

@@ -64,6 +64,10 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
 
     @Override
     public boolean isCellEditable(int column) {
+	switch (column) {
+	case COLUMN_KEY:
+	    return true;
+	}
 	return false;
     }
 
@@ -108,6 +112,13 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
 
     @Override
     public String toString() {
+	// TODO: dirty hack to improve performance
+	StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+	for (StackTraceElement element : stackTrace) {
+	    if (element.getMethodName().equals("convertValueToText"))
+		return "";
+	}
+
 	StringBuilder sb = new StringBuilder(TAG_NAME);
 	String name = getName();
 	if (!name.isEmpty())
