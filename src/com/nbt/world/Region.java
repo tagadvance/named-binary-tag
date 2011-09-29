@@ -31,22 +31,23 @@ package com.nbt.world;
 
 import java.util.List;
 
-import org.jnbt.Tag;
-
 public interface Region {
 
+    static final String REGION = "r.x.z.mcr";
+    static final String REGION_REGEX = "r.([\\-]?[\\d]+).([\\-]?[\\d]+).mcr";
+
     long lastModified();
-    
-    int getX();
-    
-    int getZ();
 
-    List<Tag<?>> getTags();
+    int getRegionX();
 
-    Tag<?> loadTag(int x, int z);
+    int getRegionZ();
+
+    boolean hasChunk(int x, int z);
+
+    Chunk getChunk(int x, int z);
     
-    void saveTag(int x, int z, Tag<?> tag);
-    
+    List<Chunk> getChunks();
+
     String getName();
 
 }

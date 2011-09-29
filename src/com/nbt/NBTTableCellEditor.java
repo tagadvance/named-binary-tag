@@ -76,12 +76,14 @@ public class NBTTableCellEditor extends AbstractCellEditor implements
 	    editor = new SpinnerCellEditor(new SpinnerNumberModel(
 		    (Number) value, Long.MIN_VALUE, Long.MAX_VALUE, stepSize));
 	} else if (value instanceof Float) {
+	    final float MIN_VALUE = Float.MAX_VALUE * -1;
 	    editor = new SpinnerCellEditor(new SpinnerNumberModel(
-		    (Number) value, Float.MIN_VALUE, Float.MAX_VALUE, stepSize));
+		    (Number) value, MIN_VALUE, Float.MAX_VALUE, stepSize));
 	} else if (value instanceof Double) {
+	    // http://stackoverflow.com/questions/3884793/minimum-values-and-double-min-value-in-java
+	    final double MIN_VALUE = Double.MAX_VALUE * -1;
 	    editor = new SpinnerCellEditor(new SpinnerNumberModel(
-		    (Number) value, Double.MIN_VALUE, Double.MAX_VALUE,
-		    stepSize));
+		    (Number) value, MIN_VALUE, Double.MAX_VALUE, stepSize));
 	} else {
 	    return null;
 	}

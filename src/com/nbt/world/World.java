@@ -31,16 +31,18 @@ package com.nbt.world;
 
 import java.util.List;
 
-import org.jnbt.Tag;
-
 public interface World {
 
     List<Region> getRegions();
 
-    Region getRegion(int x, int z);
+    Region getRegion(int regionX, int regionZ);
 
-    Tag<?> getTag(int chunkX, int chunkZ);
-    
+    Region getRegionFor(int x, int z);
+
+    Chunk getChunkFor(int x, int z);
+
+    Block getBlock(int x, int y, int z);
+
     String getName();
 
 }

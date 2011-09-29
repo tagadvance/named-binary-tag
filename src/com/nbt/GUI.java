@@ -71,7 +71,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
@@ -113,6 +112,9 @@ import com.tag.SwingWorkerUnlimited;
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")
 public class GUI extends JFrame {
+
+    public static final String TITLE = "NBT Kit";
+    public static final String VERSION = "v1.0.0";
 
     public static final String KEY_FILE = "file";
 
@@ -605,8 +607,8 @@ public class GUI extends JFrame {
 
 	};
 
-	helpAction = new NBTAction("About NBT Pro", "Help", "About NBT Pro",
-		KeyEvent.VK_F1) {
+	String name = "About " + TITLE;
+	helpAction = new NBTAction(name, "Help", name, KeyEvent.VK_F1) {
 
 	    {
 		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("F1"));
@@ -614,7 +616,7 @@ public class GUI extends JFrame {
 
 	    public void actionPerformed(ActionEvent e) {
 		Object[] message = {
-			new JLabel("NBT Pro v1.0.0"),
+			new JLabel(TITLE + " " + VERSION),
 			new JLabel(
 				"\u00A9 Copyright Taggart Spilman 2011.  All rights reserved."),
 			new Hyperlink(
@@ -635,6 +637,13 @@ public class GUI extends JFrame {
 			new Hyperlink(
 				"<html><a href=\"#\">The Apache Software Foundation</a>.</html>",
 				"http://www.apache.org"),
+			new JLabel(" "),
+			new JLabel("Default texture pack:"),
+			new Hyperlink(
+				"<html><a href=\"#\">SOLID COLOUR. SOLID STYLE.</a></html>",
+				"http://www.minecraftforum.net/topic/72253-solid-colour-solid-style/"),
+			new JLabel(
+				"Bundled with the permission of Trigger_Proximity."),
 
 		};
 		String title = "About";
@@ -687,7 +696,7 @@ public class GUI extends JFrame {
     }
 
     private void initComponents() {
-	setTitle("NBT Kit");
+	setTitle(TITLE);
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	JMenuBar menuBar = createMenuBar();
@@ -956,7 +965,7 @@ public class GUI extends JFrame {
 	    @Override
 	    protected Region doInBackground() throws Exception {
 		WorldRegion region = new WorldRegion(file);
-		region.getChildren(); // populate
+		region.getChunks(); // load from disk
 		return region;
 	    }
 

@@ -29,13 +29,10 @@
 
 package com.nbt.world;
 
-import java.util.List;
-
 public interface Block {
 
-    int getBlockID();
-
-    int getData();
+    public static final int MIN_X = 0, MAX_X = 16, MIN_Z = 0, MAX_Z = 16,
+	    MIN_Y = 0, MAX_Y = 128;
 
     int getX();
 
@@ -43,22 +40,14 @@ public interface Block {
 
     int getZ();
 
+    int getBlockID();
+
+    int getData();
+
     int getSkyLight();
 
     int getBlockLight();
 
-    int getHeight();
-
-    List<Entity> getEntities();
-
-    List<TileEntity> getTileEntities();
-
-    long getLastUpdate();
-
-    int getChunkX();
-
-    int getChunkY();
-
-    boolean isTerrainPopulated();
+    String getName();
 
 }

@@ -27,14 +27,44 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.tag;
 
-public interface NBTBranch {
+import java.util.Map;
 
-    public int getChildCount();
+import com.google.common.collect.MapMaker;
 
-    public Object getChild(int index);
+public abstract class Cache<K, V> {
 
-    public int getIndexOfChild(Object child);
+    private Map<K, V> map;
+
+    public Cache() {
+	this.map = createMap();
+    }
+
+    protected Map<K, V> createMap() {
+	return new MapMaker().softValues().makeMap();
+    }
+
+    public int size() {
+	return map.size();
+    }
+
+    public boolean isEmpty() {
+	return map.isEmpty();
+    }
+
+    public V get(K key) {
+	if (!map.containsKey(key)) {
+	    V value = create(key);
+	    map.put(key, value);
+	}
+	return map.get(key);
+    }
+
+    protected abstract V create(K key);
+
+    public void clear() {
+	map.clear();
+    }
 
 }

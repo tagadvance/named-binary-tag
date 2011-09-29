@@ -46,7 +46,7 @@ public class Resource {
     public Resource() {
 
     }
-
+    
     public List<String[]> getCSV(String name) {
 	return new ResourceLoader<List<String[]>>(name) {
 	    @Override
@@ -71,7 +71,7 @@ public class Resource {
 	    }
 	}.get();
     }
-
+    
     private static abstract class ResourceLoader<V> {
 
 	final String name;

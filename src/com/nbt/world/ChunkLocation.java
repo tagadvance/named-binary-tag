@@ -29,9 +29,15 @@
 
 package com.nbt.world;
 
-public class ChunkLocation {
+import static com.nbt.world.Chunk.MAX_X;
+import static com.nbt.world.Chunk.MAX_Z;
+import static com.nbt.world.Chunk.MIN_X;
+import static com.nbt.world.Chunk.MIN_Z;
 
-    public static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ChunkLocation {
 
     private int x, z;
 
@@ -64,6 +70,14 @@ public class ChunkLocation {
 	    throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
 		    + MIN_Z);
 	this.z = z;
+    }
+
+    public static List<ChunkLocation> createList() {
+	List<ChunkLocation> list = new ArrayList<ChunkLocation>();
+	for (int z = MIN_Z; z < MAX_Z; z++)
+	    for (int x = MIN_X; x < MAX_X; x++)
+		list.add(new ChunkLocation(x, z));
+	return list;
     }
 
 }

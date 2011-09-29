@@ -31,10 +31,11 @@ package com.nbt;
 
 import java.awt.EventQueue;
 import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-// TODO: lazy load nbt tree
 public class Main {
 
     public static void main(final String[] args) {
@@ -52,6 +53,18 @@ public class Main {
 		}
 	    }
 
+	});
+
+	Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+	    @Override
+	    public void uncaughtException(Thread t, Throwable e) {
+		e.printStackTrace();
+		
+		String message = e.getMessage();
+		String title = "Error";
+		JOptionPane.showMessageDialog(null, message, title,
+			JOptionPane.ERROR_MESSAGE);
+	    }
 	});
     }
 

@@ -27,14 +27,75 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.nbt.world;
 
-public interface NBTBranch {
+import static com.nbt.world.Block.MAX_X;
+import static com.nbt.world.Block.MAX_Y;
+import static com.nbt.world.Block.MAX_Z;
+import static com.nbt.world.Block.MIN_X;
+import static com.nbt.world.Block.MIN_Y;
+import static com.nbt.world.Block.MIN_Z;
 
-    public int getChildCount();
+import java.util.ArrayList;
+import java.util.List;
 
-    public Object getChild(int index);
+public class BlockLocation {
 
-    public int getIndexOfChild(Object child);
+    private final int x, y, z;
+
+    public BlockLocation(int x, int y, int z) {
+	this.x = x;
+	this.y = y;
+	this.z = z;
+    }
+
+    public int getX() {
+	return x;
+    }
+
+    public int getY() {
+	return y;
+    }
+
+    public int getZ() {
+	return z;
+    }
+
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + x;
+	result = prime * result + y;
+	result = prime * result + z;
+	return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	BlockLocation other = (BlockLocation) obj;
+	if (x != other.x)
+	    return false;
+	if (y != other.y)
+	    return false;
+	if (z != other.z)
+	    return false;
+	return true;
+    }
+
+    public static List<BlockLocation> createList() {
+	List<BlockLocation> list = new ArrayList<BlockLocation>();
+	for (int y = MIN_Y; y < MAX_Y; y++)
+	    for (int z = MIN_Z; z < MAX_Z; z++)
+		for (int x = MIN_X; x < MAX_X; x++)
+		    list.add(new BlockLocation(x, y, z));
+	return list;
+    }
 
 }
