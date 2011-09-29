@@ -45,7 +45,8 @@ import com.nbt.NBTBranch;
  * @author Taggart Spilman
  * 
  */
-public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
+public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch,
+	Searchable {
 
     public static final String TAG_NAME = "TAG_Compound";
 
@@ -108,6 +109,29 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch {
 	    }
 	}
 	return -1;
+    }
+
+    @Override
+    public Tag<?> search(String name) {
+	Map<String, Tag<?>> map = getValue();
+	for (Map.Entry<String, Tag<?>> entry : map.entrySet()) {
+	    String key = entry.getKey();
+	    Tag<?> value = entry.getValue();
+	    if (name.equals(key)) {
+		return value;
+	    } else if (value instanceof Searchable) {
+		Searchable searchable = (Searchable) value;
+		Tag<?> tag = searchable.search(name);
+		if (tag != null)
+		    return tag;
+	    }
+	}
+	return null;
+    }
+
+    @Override
+    public Tag<?> search(Object value) {
+	throw new UnsupportedOperationException("stub");
     }
 
     @Override

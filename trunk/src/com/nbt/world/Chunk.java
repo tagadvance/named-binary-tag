@@ -27,39 +27,30 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt;
+package com.nbt.world;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-public class BlockFormat {
+interface Chunk {
 
-    private static BlockFormat instance;
+    static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
+    
+    Block getBlock(int x, int y, int z);
 
-    public static BlockFormat getInstance() {
-	if (instance == null)
-	    instance = new BlockFormat();
-	return instance;
-    }
+    List<Block> getBlocks();
 
-    private Map<Integer, BlockID> map;
+    List<Entity> getEntities();
 
-    private BlockFormat() {
-	this.map = new HashMap<Integer, BlockID>();
+    List<TileEntity> getTileEntities();
 
-	for (int z = BlockID.MIN_Z; z < BlockID.MAX_Z; z++) {
-	    for (int x = BlockID.MIN_X; x < BlockID.MAX_X; x++) {
-		for (int y = BlockID.MIN_Y; y < BlockID.MAX_Y; y++) {
-		    int id = y
-			    + (z * BlockID.MAX_Y + (x * BlockID.MAX_Y * BlockID.MAX_Z));
-		    map.put(id, new BlockID(x, y, z));
-		}
-	    }
-	}
-    }
+    long getLastUpdate();
 
-    public BlockID getBlockID(int index) {
-	return map.get(index);
-    }
+    int getChunkX();
+
+    int getChunkZ();
+
+    boolean isTerrainPopulated();
+
+    String getName();
 
 }

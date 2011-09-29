@@ -69,6 +69,7 @@ import resources.Resource;
 
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
+import com.nbt.world.Block;
 import com.tag.HexUtils;
 import com.tag.ImageFactory;
 import com.tag.SwingWorkerUnlimited;
@@ -158,26 +159,18 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		final int size = 16;
 		ImageFactory iconFactory = new ImageFactory();
 		Image image = null;
-		if (value instanceof ByteWrapper) {
+		if (value instanceof Block) {
+		    Block block = (Block) value;
+		    String name = block.getName();
+		    setText(name);
+
+		    int id = block.getBlockID();
+		    SpriteRecord record = register.getRecord(id);
+		    if (record != null)
+			image = record.getImage();
+		} else if (value instanceof ByteWrapper) {
 		    image = iconFactory.createImage(NBTConstants.TYPE_BYTE,
 			    size);
-
-		    ByteWrapper byteWrapper = (ByteWrapper) value;
-		    ByteArrayTag tag = byteWrapper.getTag();
-		    String name = tag.getName();
-		    if ("Blocks".equals(name)) {
-			BlockFormat format = BlockFormat.getInstance();
-			int index = byteWrapper.getIndex();
-			BlockID blockID = format.getBlockID(index);
-			String text = blockID.toString();
-			setText(text);
-			
-			byte b = (Byte) byteWrapper
-				.getValueAt(NBTNode.COLUMN_VALUE);
-			SpriteRecord record = register.getRecord(b);
-			if (record != null)
-			    image = record.getImage();
-		    }
 		} else if (value instanceof ByteTag) {
 		    image = iconFactory.createImage(NBTConstants.TYPE_BYTE,
 			    size);

@@ -34,64 +34,75 @@ import java.io.IOError;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jnbt.ByteArrayTag;
+import org.jnbt.ByteTag;
+import org.jnbt.CompoundTag;
+import org.jnbt.LongTag;
 import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 
+import com.nbt.BlockID;
 import com.nbt.LazyBranch;
+import com.nbt.NBTBranch;
+import com.nbt.NBTNode;
+import com.tag.Cache;
 
 public class WorldRegion extends RegionFile implements Region, LazyBranch {
 
-    private Object[] children;
+    private Cache<ChunkLocation, Chunk> chunkCache = new Cache<ChunkLocation, Chunk>() {
+	@Override
+	protected Chunk create(ChunkLocation key) {
+	    return new WorldChunk(key.getX(), key.getZ());
+	}
+    };
+    private final int x, z;
+    private List<Chunk> chunks;
 
     public WorldRegion(File path) throws IOException {
 	super(path);
+
+	String name = path.getName();
+	Pattern pattern = Pattern.compile(REGION_REGEX);
+	Matcher matcher = pattern.matcher(name);
+	if (!matcher.matches())
+	    throw new IllegalArgumentException();
+	String groupX = matcher.group(1);
+	this.x = Integer.parseInt(groupX);
+	String groupZ = matcher.group(2);
+	this.z = Integer.parseInt(groupZ);
     }
 
     @Override
-    public int getX() {
-	return 0;
+    public int getRegionX() {
+	return this.x;
     }
 
     @Override
-    public int getZ() {
-	return 0;
+    public int getRegionZ() {
+	return this.z;
     }
 
     @Override
-    public List<Tag<?>> getTags() {
-	throw new RuntimeException("stub");
+    public Chunk getChunk(int x, int z) {
+	if (hasChunk(x, z))
+	    return chunkCache.get(new ChunkLocation(x, z));
+	return null;
     }
 
     @Override
-    public Tag<?> loadTag(int x, int z) {
-	NBTInputStream is = null;
-	try {
-	    is = new NBTInputStream(getChunkInputStream(x, z));
-	    return is.readTag();
-	} catch (IOException e) {
-	    // TODO: don't be lazy
-	    throw new IOError(e);
-	} finally {
-	    IOUtils.closeQuietly(is);
+    public List<Chunk> getChunks() {
+	if (chunks == null) {
+	    chunks = new ArrayList<Chunk>();
+	    for (ChunkLocation cl : ChunkLocation.createList())
+		if (hasChunk(cl.getX(), cl.getZ()))
+		    chunks.add(getChunk(cl.getX(), cl.getZ()));
 	}
-    }
-
-    @Override
-    public void saveTag(int x, int z, Tag<?> tag) {
-	NBTOutputStream is = null;
-	try {
-	    is = new NBTOutputStream(getChunkOutputStream(x, z));
-	    is.writeTag(tag);
-	} catch (IOException e) {
-	    // TODO: don't be lazy
-	    throw new IOError(e);
-	} finally {
-	    IOUtils.closeQuietly(is);
-	}
+	return chunks;
     }
 
     @Override
@@ -118,36 +129,329 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
     }
 
     @Override
-    public boolean isPopulated() {
-	return (children != null);
-    }
-
-    @Override
     public boolean hasChildren() {
-	for (int z = ChunkLocation.MIN_Z; z < ChunkLocation.MAX_Z; z++)
-	    for (int x = ChunkLocation.MIN_X; x < ChunkLocation.MAX_X; x++)
-		if (hasChunk(x, z))
-		    return true;
-
+	for (ChunkLocation cl : ChunkLocation.createList())
+	    if (hasChunk(cl.getX(), cl.getZ()))
+		return true;
 	return false;
     }
 
     @Override
-    public Object[] getChildren() {
-	if (children == null) {
-	    ArrayList<Tag<?>> tags = new ArrayList<Tag<?>>();
-	    for (int z = ChunkLocation.MIN_Z; z < ChunkLocation.MAX_Z; z++)
-		for (int x = ChunkLocation.MIN_X; x < ChunkLocation.MAX_X; x++)
-		    if (hasChunk(x, z))
-			tags.add(loadTag(x, z));
-
-	    children = tags.toArray();
-	}
-	return children;
+    public boolean isPopulated() {
+	return !chunkCache.isEmpty();
     }
 
+    @Override
+    public Object[] getChildren() {
+	List<Chunk> chunks = getChunks();
+	return chunks.toArray();
+    }
+
+    @Override
     public String toString() {
 	return getName();
+    }
+
+    @SuppressWarnings("rawtypes")
+    public class WorldChunk implements Chunk, LazyBranch {
+
+	private final int x, z;
+	private Tag<?> chunkTag;
+	private List<Block> blocks;
+
+	private Cache<BlockLocation, Block> cache = new Cache<BlockLocation, Block>() {
+	    @Override
+	    protected Block create(BlockLocation key) {
+		return new WorldBlock(key.getX(), key.getY(), key.getZ());
+	    }
+	};
+
+	public WorldChunk(int x, int z) {
+	    this.x = x;
+	    this.z = z;
+	}
+
+	@Override
+	public Block getBlock(int x, int y, int z) {
+	    return getBlock(new BlockLocation(x, y, z));
+	}
+
+	public Block getBlock(BlockLocation blockLocation) {
+	    return cache.get(blockLocation);
+	}
+
+	@Override
+	public List<Block> getBlocks() {
+	    if (blocks == null) {
+		blocks = new ArrayList<Block>();
+		for (BlockLocation bl : BlockLocation.createList())
+		    blocks.add(getBlock(bl));
+	    }
+	    return blocks;
+	}
+
+	@Override
+	public List<Entity> getEntities() {
+	    throw new UnsupportedOperationException("stub");
+	}
+
+	@Override
+	public List<TileEntity> getTileEntities() {
+	    throw new UnsupportedOperationException("stub");
+	}
+
+	@Override
+	public long getLastUpdate() {
+	    if (chunkTag instanceof CompoundTag) {
+		CompoundTag tag = (CompoundTag) chunkTag;
+		Tag search = tag.search("LastUpdate");
+		if (search instanceof LongTag) {
+		    LongTag longTag = (LongTag) search;
+		    return longTag.getValue();
+		}
+	    }
+	    return -1;
+	}
+
+	@Override
+	public int getChunkX() {
+	    return this.x;
+	}
+
+	@Override
+	public int getChunkZ() {
+	    return this.z;
+	}
+
+	@Override
+	public boolean isTerrainPopulated() {
+	    if (chunkTag instanceof CompoundTag) {
+		CompoundTag tag = (CompoundTag) chunkTag;
+		Tag search = tag.search("TerrainPopulated");
+		if (search instanceof ByteTag) {
+		    ByteTag byteTag = (ByteTag) search;
+		    byte b = byteTag.getValue();
+		    return b != 0;
+		}
+	    }
+	    return false;
+	}
+
+	@Override
+	public String getName() {
+	    return "Chunk X = " + getChunkX() + ", Z = " + getChunkZ();
+	}
+
+	@Override
+	public int getChildCount() {
+	    Object[] children = getChildren();
+	    return children.length;
+	}
+
+	@Override
+	public Object getChild(int index) {
+	    Object[] children = getChildren();
+	    return children[index];
+	}
+
+	@Override
+	public int getIndexOfChild(Object child) {
+	    Object[] children = getChildren();
+	    return ArrayUtils.indexOf(children, child);
+	}
+
+	@Override
+	public boolean hasChildren() {
+	    return true;
+	}
+
+	@Override
+	public boolean isPopulated() {
+	    return chunkTag != null;
+	}
+
+	@Override
+	public Object[] getChildren() {
+	    if (chunkTag == null) {
+		NBTInputStream is = null;
+		try {
+		    is = new NBTInputStream(getChunkInputStream(x, z));
+		    this.chunkTag = is.readTag();
+		} catch (IOException e) {
+		    // TODO: don't be lazy
+		    throw new IOError(e);
+		} finally {
+		    IOUtils.closeQuietly(is);
+		}
+	    }
+
+	    List<Block> blocks = getBlocks();
+	    return blocks.toArray();
+	}
+
+	@Override
+	public String toString() {
+	    return getName();
+	}
+
+	public class WorldBlock implements Block, LazyBranch {
+
+	    private final int x, y, z;
+	    private Object[] children;
+
+	    public WorldBlock(int x, int y, int z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	    }
+
+	    private int getIndex() {
+		return y
+			+ (z * BlockID.MAX_Y + (x * BlockID.MAX_Y * BlockID.MAX_Z));
+	    }
+
+	    @Override
+	    public int getX() {
+		return this.x;
+	    }
+
+	    @Override
+	    public int getY() {
+		return this.y;
+	    }
+
+	    @Override
+	    public int getZ() {
+		return this.z;
+	    }
+
+	    @Override
+	    public int getBlockID() {
+		if (chunkTag instanceof CompoundTag) {
+		    CompoundTag tag = (CompoundTag) chunkTag;
+		    Tag<?> search = tag.search("Blocks");
+		    if (search instanceof ByteArrayTag) {
+			ByteArrayTag baTag = (ByteArrayTag) search;
+			byte[] bytes = baTag.getValue();
+			int index = getIndex();
+			return bytes[index];
+		    }
+		}
+		return -1;
+	    }
+
+	    @Override
+	    public int getData() {
+		if (chunkTag instanceof CompoundTag) {
+		    CompoundTag tag = (CompoundTag) chunkTag;
+		    Tag<?> search = tag.search("Data");
+		    if (search instanceof ByteArrayTag) {
+			ByteArrayTag baTag = (ByteArrayTag) search;
+			byte[] bytes = baTag.getValue();
+			int index = getIndex();
+			halfByte(bytes, index);
+		    }
+		}
+		return -1;
+	    }
+
+	    @Override
+	    public int getSkyLight() {
+		if (chunkTag instanceof CompoundTag) {
+		    CompoundTag tag = (CompoundTag) chunkTag;
+		    Tag<?> search = tag.search("SkyLight");
+		    if (search instanceof ByteArrayTag) {
+			ByteArrayTag baTag = (ByteArrayTag) search;
+			byte[] bytes = baTag.getValue();
+			int index = getIndex();
+			halfByte(bytes, index);
+		    }
+		}
+		return -1;
+	    }
+
+	    @Override
+	    public int getBlockLight() {
+		if (chunkTag instanceof CompoundTag) {
+		    CompoundTag tag = (CompoundTag) chunkTag;
+		    Tag<?> search = tag.search("BlockLight");
+		    if (search instanceof ByteArrayTag) {
+			ByteArrayTag baTag = (ByteArrayTag) search;
+			byte[] bytes = baTag.getValue();
+			int index = getIndex();
+			halfByte(bytes, index);
+		    }
+		}
+		return -1;
+	    }
+
+	    private int halfByte(byte[] data, int index) {
+		int i = index / 2;
+		byte b = data[i];
+		boolean even = (index == 0) || (index % 2 == 0);
+		// TODO: make sure I didn't reverse the order
+		return (even ? getLow(b) : getHigh(b));
+	    }
+
+	    @Override
+	    public String getName() {
+		return "Block X = " + getX() + ", Z = " + getZ() + ", Y = "
+			+ getY();
+	    }
+
+	    @Override
+	    public int getChildCount() {
+		Object[] children = getChildren();
+		return children.length;
+	    }
+
+	    @Override
+	    public Object getChild(int index) {
+		Object[] children = getChildren();
+		return children[index];
+	    }
+
+	    @Override
+	    public int getIndexOfChild(Object child) {
+		Object[] children = getChildren();
+		return ArrayUtils.indexOf(children, child);
+	    }
+
+	    @Override
+	    public boolean hasChildren() {
+		return true;
+	    }
+
+	    @Override
+	    public boolean isPopulated() {
+		return children != null;
+	    }
+
+	    @Override
+	    public Object[] getChildren() {
+		if (children == null) {
+		    children = new Object[] {};
+		}
+		return children;
+	    }
+
+	    @Override
+	    public String toString() {
+		return getName();
+	    }
+
+	} // class WorldBlock
+
+    } // class WorldRegion
+
+    // TODO: test this
+    private static int getLow(byte b) {
+	return (b & 0xF);
+    }
+
+    // TODO: test this
+    private static int getHigh(byte b) {
+	return (b >>> 4) & 0xF;
     }
 
 }
