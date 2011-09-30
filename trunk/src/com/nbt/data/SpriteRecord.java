@@ -29,7 +29,11 @@
 
 package com.nbt.data;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.RescaleOp;
+
+import com.tag.Cache;
 
 import resources.Resource;
 
@@ -37,6 +41,30 @@ public class SpriteRecord extends SimpleRecord implements Sprite {
 
     private static Grid256 blockGrid;
     private static Grid256 itemGrid;
+
+    private Cache<Float, BufferedImage> cache = new Cache<Float, BufferedImage>() {
+
+	@Override
+	public BufferedImage apply(Float key) {
+	    BufferedImage image = getImage();
+	    BufferedImage rgb = toRGB(image);
+	    RescaleOp op = new RescaleOp(key, 0, null);
+	    op.filter(rgb, rgb);
+	    return rgb;
+	}
+
+	private BufferedImage toRGB(BufferedImage image) {
+	    int width = image.getWidth(), height = image.getHeight();
+	    BufferedImage image2 = new BufferedImage(width, height,
+		    BufferedImage.TYPE_INT_RGB);
+	    Graphics2D g = image2.createGraphics();
+	    int x = 0, y = 0;
+	    g.drawImage(image, x, y, null);
+	    g.dispose();
+	    return image2;
+	}
+
+    };
 
     public SpriteRecord(String[] row) {
 	super(row);
@@ -52,6 +80,10 @@ public class SpriteRecord extends SimpleRecord implements Sprite {
 	Grid256 grid = isBlock() ? getBlockGrid() : getItemGrid();
 	int index = getIconIndex();
 	return grid.subimage(index);
+    }
+
+    public BufferedImage getImage(float darkness) {
+	return cache.get(darkness);
     }
 
     private static Grid256 getBlockGrid() {

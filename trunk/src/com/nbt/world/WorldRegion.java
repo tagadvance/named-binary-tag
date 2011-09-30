@@ -42,21 +42,21 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.ByteTag;
 import org.jnbt.CompoundTag;
+import org.jnbt.IntTag;
 import org.jnbt.LongTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 
 import com.nbt.BlockID;
 import com.nbt.LazyBranch;
-import com.nbt.NBTBranch;
-import com.nbt.NBTNode;
 import com.tag.Cache;
+import com.tag.Utils;
 
 public class WorldRegion extends RegionFile implements Region, LazyBranch {
 
     private Cache<ChunkLocation, Chunk> chunkCache = new Cache<ChunkLocation, Chunk>() {
 	@Override
-	protected Chunk create(ChunkLocation key) {
+	public Chunk apply(ChunkLocation key) {
 	    return new WorldChunk(key.getX(), key.getZ());
 	}
     };
@@ -70,7 +70,7 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 	Pattern pattern = Pattern.compile(REGION_REGEX);
 	Matcher matcher = pattern.matcher(name);
 	if (!matcher.matches())
-	    throw new IllegalArgumentException();
+	    throw new IllegalArgumentException(name);
 	String groupX = matcher.group(1);
 	this.x = Integer.parseInt(groupX);
 	String groupZ = matcher.group(2);
@@ -161,7 +161,8 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 
 	private Cache<BlockLocation, Block> cache = new Cache<BlockLocation, Block>() {
 	    @Override
-	    protected Block create(BlockLocation key) {
+	    public Block apply(BlockLocation key) {
+		populate();
 		return new WorldBlock(key.getX(), key.getY(), key.getZ());
 	    }
 	};
@@ -214,13 +215,39 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 	}
 
 	@Override
-	public int getChunkX() {
+	public int getLocalX() {
 	    return this.x;
 	}
 
 	@Override
-	public int getChunkZ() {
+	public int getLocalZ() {
 	    return this.z;
+	}
+	
+	@Override
+	public int getXpos() {
+	    if (chunkTag instanceof CompoundTag) {
+		CompoundTag tag = (CompoundTag) chunkTag;
+		Tag search = tag.search("xPos");
+		if (search instanceof IntTag) {
+		    IntTag intTag = (IntTag) search;
+		    return intTag.getValue();
+		}
+	    }
+	    return -1;
+	}
+
+	@Override
+	public int getZpos() {
+	    if (chunkTag instanceof CompoundTag) {
+		CompoundTag tag = (CompoundTag) chunkTag;
+		Tag search = tag.search("zPos");
+		if (search instanceof IntTag) {
+		    IntTag intTag = (IntTag) search;
+		    return intTag.getValue();
+		}
+	    }
+	    return -1;
 	}
 
 	@Override
@@ -239,7 +266,7 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 
 	@Override
 	public String getName() {
-	    return "Chunk X = " + getChunkX() + ", Z = " + getChunkZ();
+	    return "Chunk X = " + getLocalX() + ", Z = " + getLocalZ();
 	}
 
 	@Override
@@ -272,11 +299,19 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 
 	@Override
 	public Object[] getChildren() {
+	    populate();
+
+	    List<Block> blocks = getBlocks();
+	    return blocks.toArray();
+	}
+
+	// TODO: beautify this
+	private void populate() {
 	    if (chunkTag == null) {
 		NBTInputStream is = null;
 		try {
 		    is = new NBTInputStream(getChunkInputStream(x, z));
-		    this.chunkTag = is.readTag();
+		    chunkTag = is.readTag();
 		} catch (IOException e) {
 		    // TODO: don't be lazy
 		    throw new IOError(e);
@@ -284,9 +319,6 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 		    IOUtils.closeQuietly(is);
 		}
 	    }
-
-	    List<Block> blocks = getBlocks();
-	    return blocks.toArray();
 	}
 
 	@Override
@@ -311,18 +343,28 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 	    }
 
 	    @Override
-	    public int getX() {
+	    public int getLocalX() {
 		return this.x;
 	    }
 
 	    @Override
-	    public int getY() {
+	    public int getLocalZ() {
+		return this.z;
+	    }
+	    
+	    @Override
+	    public int getAltitude() {
 		return this.y;
+	    }
+	    
+	    @Override
+	    public int getAbsoluteX() {
+		return -1;
 	    }
 
 	    @Override
-	    public int getZ() {
-		return this.z;
+	    public int getAbsoluteZ() {
+		return -1;
 	    }
 
 	    @Override
@@ -390,13 +432,13 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 		byte b = data[i];
 		boolean even = (index == 0) || (index % 2 == 0);
 		// TODO: make sure I didn't reverse the order
-		return (even ? getLow(b) : getHigh(b));
+		return (even ? Utils.getLow(b) : Utils.getHigh(b));
 	    }
 
 	    @Override
 	    public String getName() {
-		return "Block X = " + getX() + ", Z = " + getZ() + ", Y = "
-			+ getY();
+		return "Block X = " + getLocalX() + ", Z = " + getLocalZ() + ", Y = "
+			+ getAltitude();
 	    }
 
 	    @Override
@@ -443,15 +485,5 @@ public class WorldRegion extends RegionFile implements Region, LazyBranch {
 	} // class WorldBlock
 
     } // class WorldRegion
-
-    // TODO: test this
-    private static int getLow(byte b) {
-	return (b & 0xF);
-    }
-
-    // TODO: test this
-    private static int getHigh(byte b) {
-	return (b >>> 4) & 0xF;
-    }
 
 }

@@ -45,31 +45,44 @@ public class ChunkLocation {
 	this(MIN_X, MIN_Z);
     }
 
-    public ChunkLocation(int x, int z) {
-	setX(x);
-	setZ(z);
+    public ChunkLocation(int localX, int localZ) {
+	// Utils.validate(x, MIN_X, MAX_X);
+	// Utils.validate(z, MIN_Z, MAX_Z);
+	this.x = localX;
+	this.z = localZ;
     }
 
     public int getX() {
 	return x;
     }
 
-    public void setX(int x) {
-	if (x < MIN_X || x > MAX_X)
-	    throw new IllegalArgumentException(MAX_X + " >= " + x + " >= "
-		    + MIN_X);
-	this.x = x;
-    }
-
     public int getZ() {
 	return z;
     }
 
-    public void setZ(int z) {
-	if (z < MIN_Z || z > MAX_Z)
-	    throw new IllegalArgumentException(MAX_Z + " >= " + z + " >= "
-		    + MIN_Z);
-	this.z = z;
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + x;
+	result = prime * result + z;
+	return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	ChunkLocation other = (ChunkLocation) obj;
+	if (x != other.x)
+	    return false;
+	if (z != other.z)
+	    return false;
+	return true;
     }
 
     public static List<ChunkLocation> createList() {
