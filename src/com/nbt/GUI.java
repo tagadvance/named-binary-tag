@@ -101,7 +101,9 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.world.Block;
 import com.nbt.world.Region;
+import com.nbt.world.World;
 import com.nbt.world.WorldDirectory;
 import com.nbt.world.WorldRegion;
 import com.tag.FramePreferences;
@@ -1009,6 +1011,8 @@ public class GUI extends JFrame {
 		WorldDirectory world = null;
 		try {
 		    world = get();
+
+		    createAndShowTileCanvas(world);
 		} catch (InterruptedException e) {
 		    e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -1026,6 +1030,30 @@ public class GUI extends JFrame {
 	    }
 
 	});
+    }
+
+    private void createAndShowTileCanvas(World world) {
+	JFrame frame = new JFrame("World Editor");
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	TileCanvas tileCanvas = new TileCanvas(world) {
+	    @Override
+	    protected void blockClicked(Block block) {
+		// TODO: fix this
+		TreePath path = treeTable.getPathForNode(block);
+		if (path != null) {
+		    treeTable.expandPath(path);
+		    treeTable.scrollPathToVisible(path);
+		    System.err.println("path found");
+		} else
+		    System.err.println("no path found");
+	    }
+	};
+	tileCanvas.setTileWidth(32);
+	tileCanvas.setTileHeight(32);
+	tileCanvas.setAltitude(70);
+	frame.add(tileCanvas);
+	frame.pack();
+	frame.setVisible(true);
     }
 
     public void doExport(final File file) {

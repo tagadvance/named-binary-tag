@@ -31,8 +31,16 @@ package com.nbt.world;
 
 import java.util.List;
 
-public interface World {
+import org.jnbt.Tag;
 
+public interface World {
+    
+    Tag<?> getLevel();
+    
+    Player getPlayer(String name);
+    
+    List<Player> getPlayers();
+    
     List<Region> getRegions();
 
     Region getRegion(int regionX, int regionZ);

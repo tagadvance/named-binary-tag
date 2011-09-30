@@ -34,11 +34,15 @@ public interface Block {
     public static final int MIN_X = 0, MAX_X = 16, MIN_Z = 0, MAX_Z = 16,
 	    MIN_Y = 0, MAX_Y = 128;
 
-    int getX();
-
-    int getY();
-
-    int getZ();
+    int getLocalX();
+    
+    int getLocalZ();
+    
+    int getAltitude();
+    
+    int getAbsoluteX();
+    
+    int getAbsoluteZ();
 
     int getBlockID();
 

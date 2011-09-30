@@ -27,34 +27,43 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.tag;
 
-import java.util.List;
+import java.text.NumberFormat;
 
-interface Chunk {
-
-    static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
+public class Utils {
     
-    Block getBlock(int x, int y, int z);
+    public static void printElapsedSeconds(long start) {
+	long stop = System.currentTimeMillis();
+	double difference = (stop - start);
+	double seconds = difference / 1000;
+	NumberFormat format = NumberFormat.getNumberInstance();
+	String beautified = format.format(seconds);
+	System.out.println(beautified + " seconds");
+    }
 
-    List<Block> getBlocks();
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static void validate(Number value, Comparable minimum,
+	    Comparable maximum) {
+	if (value == null)
+	    throw new IllegalArgumentException("value must not be null");
+	else if (minimum == null)
+	    throw new IllegalArgumentException("minimum must not be null");
+	else if (maximum == null)
+	    throw new IllegalArgumentException("maximum must not be null");
+	if ((minimum.compareTo(value) > 0) || (maximum.compareTo(value) < 0))
+	    throw new IllegalArgumentException("!(" + minimum + " <= " + value
+		    + " <= " + maximum + ")");
+    }
 
-    List<Entity> getEntities();
+    // TODO: test this
+    public static int getLow(byte b) {
+	return (b & 0xF);
+    }
 
-    List<TileEntity> getTileEntities();
-
-    long getLastUpdate();
-    
-    int getLocalX();
-
-    int getLocalZ();
-    
-    int getXpos();
-    
-    int getZpos();
-
-    boolean isTerrainPopulated();
-
-    String getName();
+    // TODO: test this
+    public static int getHigh(byte b) {
+	return (b >>> 4) & 0xF;
+    }
 
 }

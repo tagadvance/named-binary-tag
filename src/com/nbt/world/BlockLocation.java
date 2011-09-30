@@ -91,9 +91,9 @@ public class BlockLocation {
 
     public static List<BlockLocation> createList() {
 	List<BlockLocation> list = new ArrayList<BlockLocation>();
-	for (int y = MIN_Y; y < MAX_Y; y++)
-	    for (int z = MIN_Z; z < MAX_Z; z++)
-		for (int x = MIN_X; x < MAX_X; x++)
+	for (int y = MIN_Y; y < MAX_Y - 1; y++)
+	    for (int z = MIN_Z; z < MAX_Z - 1; z++)
+		for (int x = MIN_X; x < MAX_X - 1; x++)
 		    list.add(new BlockLocation(x, y, z));
 	return list;
     }

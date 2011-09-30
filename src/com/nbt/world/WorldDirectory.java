@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.jnbt.Tag;
 
 import com.nbt.NBTBranch;
 import com.tag.Cache;
@@ -55,7 +56,7 @@ public class WorldDirectory implements World, NBTBranch {
     private final File base;
     private Cache<File, WorldRegion> regionCache = new Cache<File, WorldRegion>() {
 	@Override
-	protected WorldRegion create(File key) {
+	public WorldRegion apply(File key) {
 	    try {
 		return new WorldRegion(key);
 	    } catch (IOException e) {
@@ -84,6 +85,21 @@ public class WorldDirectory implements World, NBTBranch {
 	return new File(base, child);
     }
 
+    @Override
+    public Tag<?> getLevel() {
+	throw new UnsupportedOperationException("stub");
+    }
+
+    @Override
+    public Player getPlayer(String name) {
+	throw new UnsupportedOperationException("stub");
+    }
+
+    @Override
+    public List<Player> getPlayers() {
+	throw new UnsupportedOperationException("stub");
+    }
+
     public List<Region> getRegions() {
 	File region = getFile(DIRECTORY_REGION);
 	File[] files = region.listFiles(new FilenameFilter() {
@@ -99,34 +115,75 @@ public class WorldDirectory implements World, NBTBranch {
     }
 
     public Region getRegion(int regionX, int regionZ) {
-	String filename = REGION.replace("x", Integer.toString(regionX));
-	filename = REGION.replace("z", Integer.toString(regionZ));
+	String filename = REGION.replace("x", Integer.toString(regionX))
+		.replace("z", Integer.toString(regionZ));
 	File regionDirectory = getFile(DIRECTORY_REGION);
 	File path = new File(regionDirectory, filename);
 	return regionCache.get(path);
     }
 
     @Override
-    public Region getRegionFor(int x, int z) {
-	int regionX = (int) Math.floor((double) x / MAX_X);
-	int regionZ = (int) Math.floor((double) z / MAX_Z);
+    public Region getRegionFor(int chunkX, int chunkZ) {
+	int regionX = divide(chunkX, MAX_X);
+	int regionZ = divide(chunkZ, MAX_Z);
 	return getRegion(regionX, regionZ);
     }
 
     @Override
     public Chunk getChunkFor(int x, int z) {
-	Region region = getRegionFor(x, z);
-	int chunkX = x % MAX_X;
-	int chunkZ = z % MAX_Z;
+	int chunkX = divide(x, Block.MAX_X);
+	int chunkZ = divide(z, Block.MAX_Z);
+	Region region = getRegionFor(chunkX, chunkZ);
+	if (region == null) {
+	    // System.err.println("region is null!");
+	    return null;
+	}
+
+	chunkX = toChunkLocal(chunkX);
+	chunkZ = toChunkLocal(chunkZ);
+
 	return region.getChunk(chunkX, chunkZ);
+    }
+
+    private static int divide(int dividend, int divisor) {
+	int quotient = dividend / divisor;
+	if (dividend < 0 && divisor >= 0)
+	    quotient--;
+	return quotient;
+    }
+
+    private int toChunkLocal(int coordinate) {
+	return (coordinate < 0 ? Chunk.MAX_X - Math.abs(coordinate)
+		: coordinate);
     }
 
     @Override
     public Block getBlock(int x, int y, int z) {
 	Chunk chunk = getChunkFor(x, z);
-	int localX = x % Block.MAX_X;
-	int localZ = z % Block.MAX_Z;
+	if (chunk == null) {
+	    // System.err.println("chunk is null!");
+	    return null;
+	}
+
+	int localX = modulus(x, Block.MAX_X);
+	localX = toBlockLocal(localX);
+
+	int localZ = modulus(z, Block.MAX_Z);
+	localZ = toBlockLocal(localZ);
+
 	return chunk.getBlock(localX, y, localZ);
+    }
+    
+    private static int modulus(int dividend, int divisor) {
+	int modulo = dividend % divisor;
+	if (dividend < 0)
+	    modulo--;
+	return modulo;
+    }
+
+    private int toBlockLocal(int coordinate) {
+	return (coordinate < 0 ? Block.MAX_X - Math.abs(coordinate)
+		: coordinate);
     }
 
     @Override
