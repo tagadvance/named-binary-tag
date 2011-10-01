@@ -19,7 +19,9 @@ package com.terrain;
 import java.io.IOError;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
@@ -52,11 +54,16 @@ public class WorldChunk implements Chunk {
 	this.cache = new Cache<BlockLocation, Block>() {
 	    @Override
 	    public Block apply(BlockLocation key) {
+		// TODO: should populate be called here?
 		populate();
-		return new WorldBlock(WorldChunk.this, key.getX(), key.getY(),
-			key.getZ());
+		return createBlock(key);
 	    }
 	};
+    }
+
+    protected Block createBlock(BlockLocation location) {
+	return new WorldBlock(WorldChunk.this, location.getX(),
+		location.getY(), location.getZ());
     }
 
     public Cache<BlockLocation, Block> getCache() {
@@ -173,7 +180,10 @@ public class WorldChunk implements Chunk {
 
     @Override
     public String getName() {
-	return "Chunk X = " + getLocalX() + ", Z = " + getLocalZ();
+	StringBuilder sb = new StringBuilder();
+	Formatter formatter = new Formatter(sb, Locale.US);
+	formatter.format("Chunk [x=%1s, z=%1s]", getLocalX(), getLocalZ());
+	return sb.toString();
     }
 
     @Override

@@ -88,6 +88,8 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.world.NBTRegion;
+import com.nbt.world.NBTWorld;
 import com.tag.FramePreferences;
 import com.tag.Hyperlink;
 import com.tag.ImageFactory;
@@ -95,12 +97,10 @@ import com.tag.SwingWorkerUnlimited;
 import com.terrain.Block;
 import com.terrain.Region;
 import com.terrain.World;
-import com.terrain.WorldDirectory;
-import com.terrain.WorldRegion;
 
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")
-public class GUI extends JFrame {
+public class TreeFrame extends JFrame {
 
     public static final String TITLE = "NBT Kit";
     public static final String VERSION = "v1.0.0";
@@ -145,7 +145,7 @@ public class GUI extends JFrame {
     /**
      * Create the frame.
      */
-    public GUI() {
+    public TreeFrame() {
 	createActions();
 	initComponents();
 
@@ -183,7 +183,7 @@ public class GUI extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser fc = createFileChooser();
-		switch (fc.showOpenDialog(GUI.this)) {
+		switch (fc.showOpenDialog(TreeFrame.this)) {
 		case JFileChooser.APPROVE_OPTION:
 		    File file = fc.getSelectedFile();
 		    Preferences prefs = getPreferences();
@@ -220,7 +220,7 @@ public class GUI extends JFrame {
 
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser fc = createFileChooser();
-		switch (fc.showSaveDialog(GUI.this)) {
+		switch (fc.showSaveDialog(TreeFrame.this)) {
 		case JFileChooser.APPROVE_OPTION:
 		    File file = fc.getSelectedFile();
 		    Preferences prefs = getPreferences();
@@ -565,7 +565,7 @@ public class GUI extends JFrame {
 		Object[] message = { new JLabel("Please select a type."),
 			comboBox };
 		String title = "Title goes here";
-		int result = JOptionPane.showOptionDialog(GUI.this, message,
+		int result = JOptionPane.showOptionDialog(TreeFrame.this, message,
 			title, JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.QUESTION_MESSAGE, null, null, null);
 		switch (result) {
@@ -636,7 +636,7 @@ public class GUI extends JFrame {
 
 		};
 		String title = "About";
-		JOptionPane.showMessageDialog(GUI.this, message, title,
+		JOptionPane.showMessageDialog(TreeFrame.this, message, title,
 			JOptionPane.INFORMATION_MESSAGE);
 	    }
 
@@ -953,7 +953,7 @@ public class GUI extends JFrame {
 
 	    @Override
 	    protected Region doInBackground() throws Exception {
-		WorldRegion region = new WorldRegion(file);
+		NBTRegion region = new NBTRegion(file);
 		region.getChunks(); // load from disk
 		return region;
 	    }
@@ -986,16 +986,16 @@ public class GUI extends JFrame {
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 	setCursor(waitCursor);
 
-	SwingWorkerUnlimited.execure(new SwingWorker<WorldDirectory, Void>() {
+	SwingWorkerUnlimited.execure(new SwingWorker<NBTWorld, Void>() {
 
 	    @Override
-	    protected WorldDirectory doInBackground() throws Exception {
-		return new WorldDirectory(base);
+	    protected NBTWorld doInBackground() throws Exception {
+		return new NBTWorld(base);
 	    }
 
 	    @Override
 	    protected void done() {
-		WorldDirectory world = null;
+		NBTWorld world = null;
 		try {
 		    world = get();
 
@@ -1170,7 +1170,7 @@ public class GUI extends JFrame {
 
     public void showErrorDialog(String message) {
 	String title = "Error";
-	JOptionPane.showMessageDialog(GUI.this, message, title,
+	JOptionPane.showMessageDialog(TreeFrame.this, message, title,
 		JOptionPane.ERROR_MESSAGE);
     }
 

@@ -29,7 +29,7 @@ public class WorldRegion extends RegionFile implements Region {
 
     private final int x, z;
     private List<Chunk> chunks;
-    
+
     private final Cache<ChunkLocation, Chunk> cache;
 
     public WorldRegion(File path) throws IOException {
@@ -48,9 +48,14 @@ public class WorldRegion extends RegionFile implements Region {
 	this.cache = new Cache<ChunkLocation, Chunk>() {
 	    @Override
 	    public Chunk apply(ChunkLocation key) {
-		return new WorldChunk(WorldRegion.this, key.getX(), key.getZ());
+		return createChunk(key);
 	    }
 	};
+    }
+
+    protected Chunk createChunk(ChunkLocation location) {
+	return new WorldChunk(WorldRegion.this, location.getX(),
+		location.getZ());
     }
 
     public Cache<ChunkLocation, Chunk> getCache() {

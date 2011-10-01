@@ -16,12 +16,14 @@
 
 package com.terrain;
 
+import java.util.Formatter;
+import java.util.Locale;
+
 import org.apache.commons.lang3.Validate;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
-import com.nbt.BlockID;
 import com.tag.Utils;
 
 public class WorldBlock implements Block {
@@ -41,8 +43,15 @@ public class WorldBlock implements Block {
 	return this.chunk;
     }
 
+    /**
+     * 
+     * @return
+     * @see <a
+     *      href="http://www.minecraftwiki.net/wiki/Alpha_Level_Format/Chunk_File_Format#Block_Format">Block
+     *      Format</a>
+     */
     private int getIndex() {
-	return y + (z * BlockID.MAX_Y + (x * BlockID.MAX_Y * BlockID.MAX_Z));
+	return y + (z * MAX_Y + (x * MAX_Y * MAX_Z));
     }
 
     @Override
@@ -132,8 +141,11 @@ public class WorldBlock implements Block {
 
     @Override
     public String getName() {
-	return "Block X = " + getLocalX() + ", Z = " + getLocalZ() + ", Y = "
-		+ getAltitude();
+	StringBuilder sb = new StringBuilder();
+	Formatter formatter = new Formatter(sb, Locale.US);
+	formatter.format("Block [x=%1s, z=%1s, y=%1s]", getLocalX(),
+		getLocalZ(), getAltitude());
+	return sb.toString();
     }
 
     @Override

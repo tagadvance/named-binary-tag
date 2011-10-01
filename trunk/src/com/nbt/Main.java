@@ -30,7 +30,7 @@ public class Main {
 	EventQueue.invokeLater(new Runnable() {
 
 	    public void run() {
-		GUI gui = new GUI();
+		TreeFrame gui = new TreeFrame();
 		gui.setVisible(true);
 
 		if (args.length > 0) {

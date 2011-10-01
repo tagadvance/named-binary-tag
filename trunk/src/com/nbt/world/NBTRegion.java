@@ -27,12 +27,17 @@ import com.terrain.Chunk;
 import com.terrain.ChunkLocation;
 import com.terrain.WorldRegion;
 
-public class NBTRegion extends WorldRegion implements LazyBranch{
+public class NBTRegion extends WorldRegion implements LazyBranch {
 
-    public NBTRegion(File path) throws IOException {
-	super(path);
+    public NBTRegion(File file) throws IOException {
+	super(file);
     }
-    
+
+    @Override
+    protected Chunk createChunk(ChunkLocation location) {
+	return new NBTChunk(this, location.getX(), location.getZ());
+    }
+
     @Override
     public Object getChild(int index) {
 	Object[] children = getChildren();
@@ -69,5 +74,5 @@ public class NBTRegion extends WorldRegion implements LazyBranch{
 	List<Chunk> chunks = getChunks();
 	return chunks.toArray();
     }
-    
+
 }
