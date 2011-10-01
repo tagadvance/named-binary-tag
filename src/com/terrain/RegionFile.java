@@ -331,8 +331,6 @@ public class RegionFile {
     }
 
     public boolean hasChunk(int x, int z) {
-	x = Math.abs(x);
-	z = Math.abs(z);
 	return getOffset(x, z) != 0;
     }
 

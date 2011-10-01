@@ -50,7 +50,7 @@ public class WorldBlock implements Block {
      *      href="http://www.minecraftwiki.net/wiki/Alpha_Level_Format/Chunk_File_Format#Block_Format">Block
      *      Format</a>
      */
-    private int getIndex() {
+    public final int getIndex() {
 	return y + (z * MAX_Y + (x * MAX_Y * MAX_Z));
     }
 
@@ -87,6 +87,14 @@ public class WorldBlock implements Block {
 	    return bytes[index];
 	}
 	return -1;
+    }
+
+    public void setBlockID(int blockID) {
+	byte[] bytes = getByteArray("Blocks");
+	if (bytes != null) {
+	    int index = getIndex();
+	    bytes[index] = (byte) blockID;
+	}
     }
 
     @Override

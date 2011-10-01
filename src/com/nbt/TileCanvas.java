@@ -28,6 +28,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -119,6 +121,17 @@ public class TileCanvas extends JComponent {
 
 	hud.setBounds(0, 0, 200, 200);
 	add(hud);
+
+	// this is here to refresh block changes
+	final Timer timer = new Timer();
+	long delay = 1000;
+	timer.schedule(new TimerTask() {
+	    @Override
+	    public void run() {
+		if (isVisible())
+		    doRepaint();
+	    }
+	}, delay, delay);
     }
 
     @Override
