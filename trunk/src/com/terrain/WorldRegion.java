@@ -27,7 +27,7 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
 import java.io.File;
 import java.io.IOError;

@@ -101,15 +101,15 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
-import com.nbt.world.Block;
-import com.nbt.world.Region;
-import com.nbt.world.World;
-import com.nbt.world.WorldDirectory;
-import com.nbt.world.WorldRegion;
 import com.tag.FramePreferences;
 import com.tag.Hyperlink;
 import com.tag.ImageFactory;
 import com.tag.SwingWorkerUnlimited;
+import com.terrain.Block;
+import com.terrain.Region;
+import com.terrain.World;
+import com.terrain.WorldDirectory;
+import com.terrain.WorldRegion;
 
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")

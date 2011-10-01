@@ -27,12 +27,12 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
-import static com.nbt.world.Chunk.MAX_X;
-import static com.nbt.world.Chunk.MAX_Z;
-import static com.nbt.world.Region.REGION;
-import static com.nbt.world.Region.REGION_REGEX;
+import static com.terrain.Chunk.MAX_X;
+import static com.terrain.Chunk.MAX_Z;
+import static com.terrain.Region.REGION;
+import static com.terrain.Region.REGION_REGEX;
 
 import java.io.File;
 import java.io.FilenameFilter;

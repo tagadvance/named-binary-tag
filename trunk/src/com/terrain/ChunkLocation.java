@@ -27,34 +27,70 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
+import static com.terrain.Chunk.MAX_X;
+import static com.terrain.Chunk.MAX_Z;
+import static com.terrain.Chunk.MIN_X;
+import static com.terrain.Chunk.MIN_Z;
+
+import java.util.ArrayList;
 import java.util.List;
 
-interface Chunk {
+public class ChunkLocation {
 
-    static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
-    
-    Block getBlock(int x, int y, int z);
+    private int x, z;
 
-    List<Block> getBlocks();
+    public ChunkLocation() {
+	this(MIN_X, MIN_Z);
+    }
 
-    List<Entity> getEntities();
+    public ChunkLocation(int localX, int localZ) {
+	// Utils.validate(x, MIN_X, MAX_X);
+	// Utils.validate(z, MIN_Z, MAX_Z);
+	this.x = localX;
+	this.z = localZ;
+    }
 
-    List<TileEntity> getTileEntities();
+    public int getX() {
+	return x;
+    }
 
-    long getLastUpdate();
-    
-    int getLocalX();
+    public int getZ() {
+	return z;
+    }
 
-    int getLocalZ();
-    
-    int getXpos();
-    
-    int getZpos();
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + x;
+	result = prime * result + z;
+	return result;
+    }
 
-    boolean isTerrainPopulated();
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	ChunkLocation other = (ChunkLocation) obj;
+	if (x != other.x)
+	    return false;
+	if (z != other.z)
+	    return false;
+	return true;
+    }
 
-    String getName();
+    public static List<ChunkLocation> createList() {
+	List<ChunkLocation> list = new ArrayList<ChunkLocation>();
+	for (int z = MIN_Z; z < MAX_Z; z++)
+	    for (int x = MIN_X; x < MAX_X; x++)
+		list.add(new ChunkLocation(x, z));
+	return list;
+    }
 
 }

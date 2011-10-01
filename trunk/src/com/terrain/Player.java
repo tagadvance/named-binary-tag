@@ -1,4 +1,4 @@
-package com.nbt.world;
+package com.terrain;
 
 public interface Player {
     
