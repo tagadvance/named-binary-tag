@@ -53,9 +53,9 @@ import resources.Resource;
 
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
-import com.nbt.world.Block;
-import com.nbt.world.World;
 import com.tag.Utils;
+import com.terrain.Block;
+import com.terrain.World;
 
 @SuppressWarnings("serial")
 public class TileCanvas extends JComponent {

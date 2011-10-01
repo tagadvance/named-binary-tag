@@ -27,8 +27,30 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
-public interface Entity {
+import java.util.List;
+
+import org.jnbt.Tag;
+
+public interface World {
+    
+    Tag<?> getLevel();
+    
+    Player getPlayer(String name);
+    
+    List<Player> getPlayers();
+    
+    List<Region> getRegions();
+
+    Region getRegion(int regionX, int regionZ);
+
+    Region getRegionFor(int x, int z);
+
+    Chunk getChunkFor(int x, int z);
+
+    Block getBlock(int x, int y, int z);
+
+    String getName();
 
 }

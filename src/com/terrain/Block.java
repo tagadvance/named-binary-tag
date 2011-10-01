@@ -27,26 +27,30 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
-import java.util.List;
+public interface Block {
 
-public interface Region {
+    public static final int MIN_X = 0, MAX_X = 16, MIN_Z = 0, MAX_Z = 16,
+	    MIN_Y = 0, MAX_Y = 128;
 
-    static final String REGION = "r.x.z.mcr";
-    static final String REGION_REGEX = "r.([\\-]?[\\d]+).([\\-]?[\\d]+).mcr";
-
-    long lastModified();
-
-    int getRegionX();
-
-    int getRegionZ();
-
-    boolean hasChunk(int x, int z);
-
-    Chunk getChunk(int x, int z);
+    int getLocalX();
     
-    List<Chunk> getChunks();
+    int getLocalZ();
+    
+    int getAltitude();
+    
+    int getAbsoluteX();
+    
+    int getAbsoluteZ();
+
+    int getBlockID();
+
+    int getData();
+
+    int getSkyLight();
+
+    int getBlockLight();
 
     String getName();
 

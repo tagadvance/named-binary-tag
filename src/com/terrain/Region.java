@@ -27,70 +27,27 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
-import static com.nbt.world.Chunk.MAX_X;
-import static com.nbt.world.Chunk.MAX_Z;
-import static com.nbt.world.Chunk.MIN_X;
-import static com.nbt.world.Chunk.MIN_Z;
-
-import java.util.ArrayList;
 import java.util.List;
 
-public class ChunkLocation {
+public interface Region {
 
-    private int x, z;
+    static final String REGION = "r.x.z.mcr";
+    static final String REGION_REGEX = "r.([\\-]?[\\d]+).([\\-]?[\\d]+).mcr";
 
-    public ChunkLocation() {
-	this(MIN_X, MIN_Z);
-    }
+    long lastModified();
 
-    public ChunkLocation(int localX, int localZ) {
-	// Utils.validate(x, MIN_X, MAX_X);
-	// Utils.validate(z, MIN_Z, MAX_Z);
-	this.x = localX;
-	this.z = localZ;
-    }
+    int getRegionX();
 
-    public int getX() {
-	return x;
-    }
+    int getRegionZ();
 
-    public int getZ() {
-	return z;
-    }
+    boolean hasChunk(int x, int z);
 
-    @Override
-    public int hashCode() {
-	final int prime = 31;
-	int result = 1;
-	result = prime * result + x;
-	result = prime * result + z;
-	return result;
-    }
+    Chunk getChunk(int x, int z);
+    
+    List<Chunk> getChunks();
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	ChunkLocation other = (ChunkLocation) obj;
-	if (x != other.x)
-	    return false;
-	if (z != other.z)
-	    return false;
-	return true;
-    }
-
-    public static List<ChunkLocation> createList() {
-	List<ChunkLocation> list = new ArrayList<ChunkLocation>();
-	for (int z = MIN_Z; z < MAX_Z; z++)
-	    for (int x = MIN_X; x < MAX_X; x++)
-		list.add(new ChunkLocation(x, z));
-	return list;
-    }
+    String getName();
 
 }

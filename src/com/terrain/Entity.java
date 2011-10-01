@@ -27,31 +27,8 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
-public interface Block {
-
-    public static final int MIN_X = 0, MAX_X = 16, MIN_Z = 0, MAX_Z = 16,
-	    MIN_Y = 0, MAX_Y = 128;
-
-    int getLocalX();
-    
-    int getLocalZ();
-    
-    int getAltitude();
-    
-    int getAbsoluteX();
-    
-    int getAbsoluteZ();
-
-    int getBlockID();
-
-    int getData();
-
-    int getSkyLight();
-
-    int getBlockLight();
-
-    String getName();
+public interface Entity {
 
 }

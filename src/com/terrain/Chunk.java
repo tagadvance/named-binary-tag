@@ -27,29 +27,33 @@
  * policies, either expressed or implied, of Taggart Spilman.
  */
 
-package com.nbt.world;
+package com.terrain;
 
 import java.util.List;
 
-import org.jnbt.Tag;
+interface Chunk {
 
-public interface World {
+    static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
     
-    Tag<?> getLevel();
-    
-    Player getPlayer(String name);
-    
-    List<Player> getPlayers();
-    
-    List<Region> getRegions();
-
-    Region getRegion(int regionX, int regionZ);
-
-    Region getRegionFor(int x, int z);
-
-    Chunk getChunkFor(int x, int z);
-
     Block getBlock(int x, int y, int z);
+
+    List<Block> getBlocks();
+
+    List<Entity> getEntities();
+
+    List<TileEntity> getTileEntities();
+
+    long getLastUpdate();
+    
+    int getLocalX();
+
+    int getLocalZ();
+    
+    int getXpos();
+    
+    int getZpos();
+
+    boolean isTerrainPopulated();
 
     String getName();
 

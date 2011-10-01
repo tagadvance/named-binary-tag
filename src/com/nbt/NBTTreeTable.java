@@ -69,10 +69,10 @@ import resources.Resource;
 
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
-import com.nbt.world.Block;
 import com.tag.HexUtils;
 import com.tag.ImageFactory;
 import com.tag.SwingWorkerUnlimited;
+import com.terrain.Block;
 
 /**
  * 
