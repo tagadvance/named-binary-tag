@@ -54,6 +54,8 @@ import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
+import org.apache.commons.lang3.Validate;
+
 public class FramePreferences {
 
     static final String KEY_EXTENDED_STATE = "frameExtendedState";
@@ -183,8 +185,7 @@ public class FramePreferences {
     }
 
     private void setFrame(Frame frame) {
-	if (frame == null)
-	    throw new IllegalArgumentException("frame must not be null");
+	Validate.notNull(frame, "frame must not be null");
 	this.frame = frame;
     }
 

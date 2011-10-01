@@ -41,13 +41,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import org.apache.commons.lang3.Validate;
 
 import resources.Resource;
 
@@ -83,9 +84,12 @@ public class TileCanvas extends JComponent {
     private int x, z, altitude;
     private int tileWidth = 16, tileHeight = 16;
 
+    final JLabel xl = new JLabel();
+    final JLabel zl = new JLabel();
+    final JLabel al = new JLabel();
+
     public TileCanvas(final World world) {
-	if (world == null)
-	    throw new IllegalArgumentException("world must not be null");
+	Validate.notNull(world, "world must not be null");
 	this.world = world;
 
 	setFocusable(true);
@@ -108,41 +112,25 @@ public class TileCanvas extends JComponent {
 		blockClicked(block);
 	    }
 	});
-	
+
+	setLayout(null);
+
 	JPanel hud = new JPanel();
 	hud.setOpaque(false);
 
 	BoxLayout boxLayout = new BoxLayout(hud, BoxLayout.Y_AXIS);
 	hud.setLayout(boxLayout);
 
-	final JLabel xl = new JLabel();
 	xl.setAlignmentX(Component.LEFT_ALIGNMENT);
 	hud.add(xl);
 
-	final JLabel zl = new JLabel();
 	zl.setAlignmentX(Component.LEFT_ALIGNMENT);
 	hud.add(zl);
 
-	final JLabel al = new JLabel();
 	al.setAlignmentX(Component.LEFT_ALIGNMENT);
 	hud.add(al);
 
-	new Thread(new Runnable() {
-	    @Override
-	    public void run() {
-		while (isVisible()) {
-		    xl.setText("X: " + getTileX());
-		    zl.setText("Z: " + getTileZ());
-		    al.setText("Y: " + getAltitude());
-		    try {
-			TimeUnit.SECONDS.sleep(1);
-		    } catch (InterruptedException e) {
-			break;
-		    }
-		}
-	    }
-	}).start();
-	
+	hud.setBounds(0, 0, 200, 200);
 	add(hud);
     }
 
@@ -203,6 +191,11 @@ public class TileCanvas extends JComponent {
 	    setAltitude(altitude - 1);
 	    break;
 	}
+
+	xl.setText("X: " + getTileX());
+	zl.setText("Z: " + getTileZ());
+	al.setText("Y: " + getAltitude());
+
 	doRepaint();
     }
 

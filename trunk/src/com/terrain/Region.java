@@ -42,9 +42,9 @@ public interface Region {
 
     int getRegionZ();
 
-    boolean hasChunk(int x, int z);
+    boolean hasChunk(int chunkX, int chunkZ);
 
-    Chunk getChunk(int x, int z);
+    Chunk getChunk(int chunkX, int chunkZ);
     
     List<Chunk> getChunks();
 

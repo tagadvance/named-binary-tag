@@ -38,6 +38,7 @@ import java.util.MissingResourceException;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Validate;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -77,8 +78,7 @@ public class Resource {
 	final String name;
 
 	public ResourceLoader(String name) {
-	    if (name == null)
-		throw new IllegalArgumentException("name must not be null");
+	    Validate.notNull(name, "name must not be null");
 	    this.name = name;
 	}
 
