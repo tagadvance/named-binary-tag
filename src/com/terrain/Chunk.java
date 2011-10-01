@@ -31,7 +31,7 @@ package com.terrain;
 
 import java.util.List;
 
-interface Chunk {
+public interface Chunk {
 
     static final int MIN_X = 0, MAX_X = 32, MIN_Z = 0, MAX_Z = 32;
     

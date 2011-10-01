@@ -40,13 +40,13 @@ public interface World {
     Player getPlayer(String name);
     
     List<Player> getPlayers();
-    
-    List<Region> getRegions();
 
     Region getRegion(int regionX, int regionZ);
-
-    Region getRegionFor(int x, int z);
-
+    
+    List<Region> getRegions();
+    
+    Region getRegionFor(int chunkX, int chunkZ);
+    
     Chunk getChunkFor(int x, int z);
 
     Block getBlock(int x, int y, int z);

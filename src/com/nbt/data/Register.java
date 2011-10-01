@@ -33,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.Validate;
+
 public abstract class Register<E extends Record> {
 
     protected final Map<Integer, E> map;
@@ -42,8 +44,7 @@ public abstract class Register<E extends Record> {
     }
 
     public void load(List<String[]> rows) {
-	if (rows == null)
-	    throw new IllegalArgumentException("rows must not be null");
+	Validate.notNull(rows, "rows must not be null");
 	for (String[] row : rows) {
 	    E value = createRecord(row);
 	    int key = value.getID();

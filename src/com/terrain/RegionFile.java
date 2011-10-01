@@ -70,6 +70,8 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
+import org.apache.commons.lang3.Validate;
+
 /**
  * http://pastebin.com/niWTqLvk
  */
@@ -93,8 +95,7 @@ public class RegionFile {
     private long lastModified = 0;
 
     public RegionFile(File path) throws IOException {
-	if (path == null)
-	    throw new IllegalArgumentException("path must not be null");
+	Validate.notNull(path, "path must not be null");
 	this.path = path;
 
 	offsets = new int[SECTOR_INTS];

@@ -41,6 +41,8 @@ import java.net.URISyntaxException;
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
 
+import org.apache.commons.lang3.Validate;
+
 @SuppressWarnings("serial")
 public class Hyperlink extends JButton {
 
@@ -98,8 +100,7 @@ public class Hyperlink extends JButton {
     }
 
     private void setUri(URI uri) {
-	if (uri == null)
-	    throw new IllegalArgumentException("uri must not be null");
+	Validate.notNull(uri, "uri must not be null");
 	this.uri = uri;
     }
 

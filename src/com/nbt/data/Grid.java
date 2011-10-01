@@ -31,6 +31,8 @@ package com.nbt.data;
 
 import java.awt.image.BufferedImage;
 
+import org.apache.commons.lang3.Validate;
+
 public class Grid {
 
     private BufferedImage image;
@@ -73,8 +75,7 @@ public class Grid {
     }
 
     public void setImage(BufferedImage image) {
-	if (image == null)
-	    throw new IllegalArgumentException("image must not be null");
+	Validate.notNull("image must not be null");
 	this.image = image;
     }
 

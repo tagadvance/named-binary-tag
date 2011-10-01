@@ -35,6 +35,8 @@ package org.jnbt;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.Validate;
+
 import com.nbt.NBTBranch;
 
 /**
@@ -77,8 +79,7 @@ public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
     }
 
     private void setType(Class<E> type) {
-	if (type == null)
-	    throw new IllegalArgumentException("type must not be null");
+	Validate.notNull(type, "type must not be null");
 	this.type = type;
     }
 
