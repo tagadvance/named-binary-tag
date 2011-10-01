@@ -67,6 +67,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -88,6 +89,8 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.world.NBTBlock;
+import com.nbt.world.NBTChunk;
 import com.nbt.world.NBTRegion;
 import com.nbt.world.NBTWorld;
 import com.tag.FramePreferences;
@@ -565,8 +568,8 @@ public class TreeFrame extends JFrame {
 		Object[] message = { new JLabel("Please select a type."),
 			comboBox };
 		String title = "Title goes here";
-		int result = JOptionPane.showOptionDialog(TreeFrame.this, message,
-			title, JOptionPane.OK_CANCEL_OPTION,
+		int result = JOptionPane.showOptionDialog(TreeFrame.this,
+			message, title, JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.QUESTION_MESSAGE, null, null, null);
 		switch (result) {
 		case JOptionPane.OK_OPTION:
@@ -1024,15 +1027,41 @@ public class TreeFrame extends JFrame {
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	TileCanvas tileCanvas = new TileCanvas(world) {
 	    @Override
-	    protected void blockClicked(Block block) {
-		// TODO: fix this
-		TreePath path = treeTable.getPathForNode(block);
-		if (path != null) {
-		    treeTable.expandPath(path);
-		    treeTable.scrollPathToVisible(path);
-		    System.err.println("path found");
-		} else
-		    System.err.println("no path found");
+	    protected void blockClicked(final Block block) {
+		Cursor waitCursor = Cursor
+			.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		setCursor(waitCursor);
+
+		SwingWorkerUnlimited.execure(new SwingWorker<TreePath, Void>() {
+
+		    @Override
+		    protected TreePath doInBackground() throws Exception {
+			NBTBlock b = (NBTBlock) block;
+			NBTChunk chunk = (NBTChunk) b.getChunk();
+			NBTRegion region = (NBTRegion) chunk.getRegion();
+			return treeTable.getPathForNode(region)
+				.pathByAddingChild(chunk).pathByAddingChild(b);
+		    }
+
+		    @Override
+		    protected void done() {
+			Cursor defaultCursor = Cursor.getDefaultCursor();
+			setCursor(defaultCursor);
+
+			try {
+			    TreePath path = get();
+			    selectAndScroll(path);
+			} catch (InterruptedException e) {
+			    e.printStackTrace();
+			} catch (ExecutionException e) {
+			    e.printStackTrace();
+			    Throwable cause = ExceptionUtils.getRootCause(e);
+			    showErrorDialog(cause.getMessage());
+			    return;
+			}
+		    }
+
+		});
 	    }
 	};
 	tileCanvas.setTileWidth(32);
@@ -1041,6 +1070,19 @@ public class TreeFrame extends JFrame {
 	frame.add(tileCanvas);
 	frame.pack();
 	frame.setVisible(true);
+    }
+
+    private void selectAndScroll(TreePath path) {
+	if (path == null) {
+	    System.err.println("no path found");
+	    return;
+	}
+
+	TreeSelectionModel model = treeTable.getTreeSelectionModel();
+	model.setSelectionPath(path);
+
+	treeTable.expandPath(path);
+	treeTable.scrollPathToVisible(path);
     }
 
     public void doExport(final File file) {

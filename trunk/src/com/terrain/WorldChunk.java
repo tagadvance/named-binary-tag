@@ -86,6 +86,10 @@ public class WorldChunk implements Chunk {
 	}
     }
 
+    public Region getRegion() {
+	return this.region;
+    }
+
     @Override
     public Block getBlock(int x, int y, int z) {
 	return getBlock(new BlockLocation(x, y, z));
