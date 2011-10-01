@@ -16,54 +16,45 @@
 
 package com.nbt.world;
 
-import org.apache.commons.lang3.ArrayUtils;
-
-import com.nbt.LazyBranch;
-import com.nbt.NBTBranch;
+import com.nbt.NBTNode;
 import com.terrain.WorldBlock;
 import com.terrain.WorldChunk;
 
-public class NBTBlock extends WorldBlock implements NBTBranch {
-
-    private Object[] children;
+public class NBTBlock extends WorldBlock implements NBTNode {
 
     public NBTBlock(WorldChunk chunk, int x, int y, int z) {
 	super(chunk, x, y, z);
     }
 
     @Override
-    public int getChildCount() {
-	Object[] children = getChildren();
-	return children.length;
+    public boolean isCellEditable(int column) {
+	switch (column) {
+	case COLUMN_VALUE:
+	    return true;
+	}
+	return false;
     }
 
     @Override
-    public Object getChild(int index) {
-	Object[] children = getChildren();
-	return children[index];
+    public Object getValueAt(int column) {
+	switch (column) {
+	case COLUMN_KEY:
+	    return getName();
+	case COLUMN_VALUE:
+	    return getBlockID();
+	}
+	return null;
     }
 
     @Override
-    public int getIndexOfChild(Object child) {
-	Object[] children = getChildren();
-	return ArrayUtils.indexOf(children, child);
-    }
-
-//    @Override
-//    public boolean hasChildren() {
-//	return true;
-//    }
-//
-//    @Override
-//    public boolean isPopulated() {
-//	return children != null;
-//    }
-//
-//    @Override
-    public Object[] getChildren() {
-	if (children == null)
-	    children = new Object[] {};
-	return children;
+    public void setValueAt(Object value, int column) {
+	switch (column) {
+	case COLUMN_VALUE:
+	    if (value instanceof Integer) {
+		int blockID = (Integer) value;
+		setBlockID(blockID);
+	    }
+	}
     }
 
 }

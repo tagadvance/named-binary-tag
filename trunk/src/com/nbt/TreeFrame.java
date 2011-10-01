@@ -89,7 +89,6 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
-import com.nbt.world.NBTBlock;
 import com.nbt.world.NBTChunk;
 import com.nbt.world.NBTRegion;
 import com.nbt.world.NBTWorld;
@@ -100,6 +99,7 @@ import com.tag.SwingWorkerUnlimited;
 import com.terrain.Block;
 import com.terrain.Region;
 import com.terrain.World;
+import com.terrain.WorldBlock;
 
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")
@@ -1036,11 +1036,29 @@ public class TreeFrame extends JFrame {
 
 		    @Override
 		    protected TreePath doInBackground() throws Exception {
-			NBTBlock b = (NBTBlock) block;
+			WorldBlock b = (WorldBlock) block;
 			NBTChunk chunk = (NBTChunk) b.getChunk();
 			NBTRegion region = (NBTRegion) chunk.getRegion();
-			return treeTable.getPathForNode(region)
-				.pathByAddingChild(chunk).pathByAddingChild(b);
+			Tag<?> chunkTag = chunk.getTag();
+			if (chunkTag instanceof CompoundTag) {
+			    CompoundTag compoundTag = (CompoundTag) chunkTag;
+			    Tag<?> level = compoundTag.search("Level");
+			    if (level instanceof CompoundTag) {
+				CompoundTag levelTag = (CompoundTag) level;
+				Tag<?> blocks = levelTag.search("Blocks");
+				if (blocks instanceof ByteArrayTag) {
+				    ByteArrayTag blocksTag = (ByteArrayTag) blocks;
+				    int index = b.getIndex();
+				    Object child = blocksTag.getChild(index);
+				    return treeTable.getPathForNode(region)
+					    .pathByAddingChild(chunk)
+					    .pathByAddingChild(level)
+					    .pathByAddingChild(blocks)
+					    .pathByAddingChild(child);
+				}
+			    }
+			}
+			return null;
 		    }
 
 		    @Override

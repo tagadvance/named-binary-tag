@@ -16,17 +16,15 @@
 
 package com.nbt.world;
 
-import java.util.List;
+import org.jnbt.CompoundTag;
 
-import org.apache.commons.lang3.ArrayUtils;
-
-import com.nbt.LazyBranch;
+import com.nbt.NBTBranch;
 import com.terrain.Block;
 import com.terrain.BlockLocation;
 import com.terrain.WorldChunk;
 import com.terrain.WorldRegion;
 
-public class NBTChunk extends WorldChunk implements LazyBranch {
+public class NBTChunk extends WorldChunk implements NBTBranch {
 
     public NBTChunk(WorldRegion region, int x, int z) {
 	super(region, x, z);
@@ -40,36 +38,29 @@ public class NBTChunk extends WorldChunk implements LazyBranch {
 
     @Override
     public int getChildCount() {
-	Object[] children = getChildren();
-	return children.length;
+	if (chunkTag instanceof CompoundTag) {
+	    CompoundTag tag = (CompoundTag) chunkTag;
+	    return tag.getChildCount();
+	}
+	return 0;
     }
 
     @Override
     public Object getChild(int index) {
-	Object[] children = getChildren();
-	return children[index];
+	if (chunkTag instanceof CompoundTag) {
+	    CompoundTag tag = (CompoundTag) chunkTag;
+	    return tag.getChild(index);
+	}
+	return null;
     }
 
     @Override
     public int getIndexOfChild(Object child) {
-	Object[] children = getChildren();
-	return ArrayUtils.indexOf(children, child);
-    }
-
-    @Override
-    public boolean hasChildren() {
-	return true;
-    }
-
-    @Override
-    public boolean isPopulated() {
-	return chunkTag != null;
-    }
-
-    @Override
-    public Object[] getChildren() {
-	List<Block> blocks = getBlocks();
-	return blocks.toArray();
+	if (chunkTag instanceof CompoundTag) {
+	    CompoundTag tag = (CompoundTag) chunkTag;
+	    tag.getIndexOfChild(child);
+	}
+	return -1;
     }
 
 }

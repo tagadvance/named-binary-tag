@@ -73,6 +73,7 @@ public class WorldChunk implements Chunk {
     // TODO: beautify this
     private void populate() {
 	if (chunkTag == null) {
+	    System.out.println("populate " + this);
 	    NBTInputStream is = null;
 	    try {
 		is = new NBTInputStream(region.getChunkInputStream(x, z));
@@ -88,6 +89,10 @@ public class WorldChunk implements Chunk {
 
     public Region getRegion() {
 	return this.region;
+    }
+
+    public Tag<?> getTag() {
+	return this.chunkTag;
     }
 
     @Override

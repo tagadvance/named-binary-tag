@@ -1,5 +1,7 @@
 package org.jnbt;
 
+import java.util.Arrays;
+
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
 import com.tag.HexUtils;
@@ -89,8 +91,9 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 
     @Override
     public int getIndexOfChild(Object child) {
-	if (child instanceof Integer) {
-	    return (Integer) child;
+	if (child instanceof ByteWrapper) {
+	    ByteWrapper wrapper = (ByteWrapper) child;
+	    return wrapper.getIndex();
 	}
 	return -1;
     }
@@ -168,9 +171,15 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	    if (getClass() != obj.getClass())
 		return false;
 	    ByteWrapper other = (ByteWrapper) obj;
+	    if (!Arrays.equals(getBytes(), other.getBytes()))
+		return false;
 	    if (index != other.index)
 		return false;
 	    return true;
+	}
+
+	private byte[] getBytes() {
+	    return getValue();
 	}
 
     }
