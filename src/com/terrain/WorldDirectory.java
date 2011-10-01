@@ -34,29 +34,39 @@ import org.jnbt.Tag;
 import com.nbt.NBTBranch;
 import com.tag.Cache;
 
-public class WorldDirectory implements World, NBTBranch {
+public class WorldDirectory implements World {
 
     public static final String FILE_LEVEL = "level.dat";
     public static final String DIRECTORY_REGION = "region";
     public static final String DIRECTORY_PLAYERS = "players";
 
     private final File base;
-    private Cache<File, WorldRegion> regionCache = new Cache<File, WorldRegion>() {
-	@Override
-	public WorldRegion apply(File key) {
-	    try {
-		return new WorldRegion(key);
-	    } catch (IOException e) {
-		// TODO: don't be lazy
-		throw new IOError(e);
-	    }
-	}
-    };
+    private final Cache<File, Region> cache;
 
     public WorldDirectory(File base) {
 	if (!base.exists())
 	    throw new IllegalArgumentException("does not exist");
 	this.base = base;
+
+	this.cache = new Cache<File, Region>() {
+	    @Override
+	    public Region apply(File key) {
+		return createRegion(key);
+	    }
+	};
+    }
+
+    protected Region createRegion(File file) {
+	try {
+	    return new WorldRegion(file);
+	} catch (IOException e) {
+	    // TODO: don't be lazy
+	    throw new IOError(e);
+	}
+    }
+
+    public Cache<File, Region> getCache() {
+	return this.cache;
     }
 
     public File getBaseDirectory() {
@@ -97,7 +107,7 @@ public class WorldDirectory implements World, NBTBranch {
 	});
 	List<Region> set = new ArrayList<Region>();
 	for (File file : files)
-	    set.add(regionCache.get(file));
+	    set.add(cache.get(file));
 	return set;
     }
 
@@ -106,7 +116,7 @@ public class WorldDirectory implements World, NBTBranch {
 		.replace("z", Integer.toString(regionZ));
 	File regionDirectory = getFile(DIRECTORY_REGION);
 	File path = new File(regionDirectory, filename);
-	return regionCache.get(path);
+	return cache.get(path);
     }
 
     @Override
@@ -160,7 +170,7 @@ public class WorldDirectory implements World, NBTBranch {
 
 	return chunk.getBlock(localX, y, localZ);
     }
-    
+
     private static int modulus(int dividend, int divisor) {
 	int modulo = dividend % divisor;
 	if (dividend < 0)
@@ -176,25 +186,6 @@ public class WorldDirectory implements World, NBTBranch {
     @Override
     public String getName() {
 	return base.toString();
-    }
-
-    @Override
-    public int getChildCount() {
-	List<Region> regions = getRegions();
-	return regions.size();
-    }
-
-    @Override
-    public Object getChild(int index) {
-	List<Region> regions = getRegions();
-	return regions.get(index);
-    }
-
-    @Override
-    public int getIndexOfChild(Object child) {
-	List<Region> regions = getRegions();
-	Object[] array = regions.toArray();
-	return ArrayUtils.indexOf(array, child);
     }
 
     public String toString() {

@@ -24,7 +24,9 @@ import static com.terrain.Block.MIN_Y;
 import static com.terrain.Block.MIN_Z;
 
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 
 public class BlockLocation {
 
@@ -46,6 +48,14 @@ public class BlockLocation {
 
     public int getZ() {
 	return z;
+    }
+
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder();
+	Formatter formatter = new Formatter(sb, Locale.US);
+	formatter.format("BlockLocation [x=%1s, z=%1s, y=%1s]", getX(), getZ(), getY());
+	return sb.toString();
     }
 
     @Override

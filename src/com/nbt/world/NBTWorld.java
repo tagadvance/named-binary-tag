@@ -16,60 +16,50 @@
 
 package com.nbt.world;
 
+import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.nbt.LazyBranch;
-import com.terrain.Block;
-import com.terrain.BlockLocation;
-import com.terrain.WorldChunk;
-import com.terrain.WorldRegion;
+import com.nbt.NBTBranch;
+import com.terrain.Region;
+import com.terrain.WorldDirectory;
 
-public class NBTChunk extends WorldChunk implements LazyBranch {
+public class NBTWorld extends WorldDirectory implements NBTBranch {
 
-    public NBTChunk(WorldRegion region, int x, int z) {
-	super(region, x, z);
+    public NBTWorld(File base) {
+	super(base);
     }
 
     @Override
-    protected Block createBlock(BlockLocation location) {
-	return new NBTBlock(this, location.getX(), location.getY(),
-		location.getZ());
+    protected Region createRegion(File file) {
+	try {
+	    return new NBTRegion(file);
+	} catch (IOException e) {
+	    // TODO: don't be lazy
+	    throw new IOError(e);
+	}
     }
 
     @Override
     public int getChildCount() {
-	Object[] children = getChildren();
-	return children.length;
+	List<Region> regions = getRegions();
+	return regions.size();
     }
 
     @Override
     public Object getChild(int index) {
-	Object[] children = getChildren();
-	return children[index];
+	List<Region> regions = getRegions();
+	return regions.get(index);
     }
 
     @Override
     public int getIndexOfChild(Object child) {
-	Object[] children = getChildren();
-	return ArrayUtils.indexOf(children, child);
-    }
-
-    @Override
-    public boolean hasChildren() {
-	return true;
-    }
-
-    @Override
-    public boolean isPopulated() {
-	return chunkTag != null;
-    }
-
-    @Override
-    public Object[] getChildren() {
-	List<Block> blocks = getBlocks();
-	return blocks.toArray();
+	List<Region> regions = getRegions();
+	Object[] array = regions.toArray();
+	return ArrayUtils.indexOf(array, child);
     }
 
 }

@@ -22,7 +22,9 @@ import static com.terrain.Chunk.MIN_X;
 import static com.terrain.Chunk.MIN_Z;
 
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 
 public class ChunkLocation {
 
@@ -45,6 +47,14 @@ public class ChunkLocation {
 
     public int getZ() {
 	return z;
+    }
+
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder();
+	Formatter formatter = new Formatter(sb, Locale.US);
+	formatter.format("ChunkLocation [x=%1s, z=%1s]", getX(), getZ());
+	return sb.toString();
     }
 
     @Override
