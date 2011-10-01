@@ -19,10 +19,11 @@ package com.nbt.world;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.nbt.LazyBranch;
+import com.nbt.NBTBranch;
 import com.terrain.WorldBlock;
 import com.terrain.WorldChunk;
 
-public class NBTBlock extends WorldBlock implements LazyBranch {
+public class NBTBlock extends WorldBlock implements NBTBranch {
 
     private Object[] children;
 
@@ -48,17 +49,17 @@ public class NBTBlock extends WorldBlock implements LazyBranch {
 	return ArrayUtils.indexOf(children, child);
     }
 
-    @Override
-    public boolean hasChildren() {
-	return true;
-    }
-
-    @Override
-    public boolean isPopulated() {
-	return children != null;
-    }
-
-    @Override
+//    @Override
+//    public boolean hasChildren() {
+//	return true;
+//    }
+//
+//    @Override
+//    public boolean isPopulated() {
+//	return children != null;
+//    }
+//
+//    @Override
     public Object[] getChildren() {
 	if (children == null)
 	    children = new Object[] {};

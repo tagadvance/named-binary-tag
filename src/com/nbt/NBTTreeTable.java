@@ -273,7 +273,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	Object node = path.getLastPathComponent();
 	if (node == searchNode)
 	    return path;
-	
+
 	// TODO: performance fix
 	if (searchNode instanceof LazyBranch) {
 	    LazyBranch lazy = (LazyBranch) searchNode;
