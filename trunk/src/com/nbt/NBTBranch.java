@@ -18,10 +18,10 @@ package com.nbt;
 
 public interface NBTBranch {
 
-    public int getChildCount();
+    int getChildCount();
 
-    public Object getChild(int index);
+    Object getChild(int index);
 
-    public int getIndexOfChild(Object child);
+    int getIndexOfChild(Object child);
 
 }

@@ -19,18 +19,24 @@ package com.nbt.world;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import com.nbt.NBTBranch;
+import com.tag.Cache;
 import com.terrain.Region;
 import com.terrain.WorldDirectory;
 
 public class NBTWorld extends WorldDirectory implements NBTBranch {
 
+    private final NBTFileBranch branch;
+
     public NBTWorld(File base) {
 	super(base);
+	this.branch = new NBTFileBranch(base) {
+	    @Override
+	    protected Cache<File, Region> createRegionCache() {
+		return getCache();
+	    }
+	};
     }
 
     @Override
@@ -45,21 +51,17 @@ public class NBTWorld extends WorldDirectory implements NBTBranch {
 
     @Override
     public int getChildCount() {
-	List<Region> regions = getRegions();
-	return regions.size();
+	return branch.getChildCount();
     }
 
     @Override
     public Object getChild(int index) {
-	List<Region> regions = getRegions();
-	return regions.get(index);
+	return branch.getChild(index);
     }
 
     @Override
     public int getIndexOfChild(Object child) {
-	List<Region> regions = getRegions();
-	Object[] array = regions.toArray();
-	return ArrayUtils.indexOf(array, child);
+	return branch.getIndexOfChild(child);
     }
 
 }

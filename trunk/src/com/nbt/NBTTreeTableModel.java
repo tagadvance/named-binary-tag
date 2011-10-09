@@ -16,11 +16,16 @@
 
 package com.nbt;
 
+import java.io.File;
+
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
+
+import com.nbt.world.NBTFileBranch;
 
 public class NBTTreeTableModel extends AbstractTreeTableModel {
 
@@ -58,6 +63,13 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 	if (node instanceof LazyBranch) {
 	    LazyBranch lazyBranch = (LazyBranch) node;
 	    return !lazyBranch.hasChildren();
+	}
+
+	if (node instanceof NBTFileBranch) {
+	    NBTFileBranch branch = (NBTFileBranch) node;
+	    File file = branch.getFile();
+	    if (file.isDirectory())
+		return false;
 	}
 
 	return super.isLeaf(node);
@@ -129,7 +141,32 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 	return -1;
     }
 
+    protected void fireTreeNodesInserted(Object source, TreePath path,
+	    Object... children) {
+	Object parent = path.getLastPathComponent();
+	int length = children.length;
+	int[] childIndices = new int[length];
+	for (int i = 0; i < length; i++) {
+	    Object child = children[i];
+	    childIndices[i] = getIndexOfChild(parent, child);
+	}
+	fireTreeNodesInserted(source, path, childIndices, children);
+    }
+
+    protected void fireTreeNodesInserted(Object source, TreePath path) {
+	Object parent = path.getLastPathComponent();
+	int count = getChildCount(parent);
+	int[] childIndices = new int[count];
+	Object[] children = new Object[count];
+	for (int i = 0; i < count; i++) {
+	    childIndices[i] = i;
+	    children[i] = getChild(parent, i);
+	}
+	fireTreeNodesInserted(source, path, childIndices, children);
+    }
+
     /**
+     * @see TreeModelEvent#TreeModelEvent(Object, Object[], int[], Object[])
      * @see TreeModelEvent#TreeModelEvent(Object, TreePath, int[], Object[])
      * @see TreeModelListener#treeNodesInserted(TreeModelEvent)
      */
@@ -138,8 +175,9 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 	TreeModelEvent event = new TreeModelEvent(source, path, childIndices,
 		children);
 	TreeModelListener[] listeners = getTreeModelListeners();
-	for (int i = listeners.length - 1; i >= 0; --i)
-	    listeners[i].treeNodesInserted(event);
+	ArrayUtils.reverse(listeners);
+	for (TreeModelListener listener : listeners)
+	    listener.treeNodesInserted(event);
     }
 
 }

@@ -32,7 +32,6 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -76,16 +75,7 @@ public class NBTInputStream implements Closeable {
      *             if an I/O error occurs.
      */
     public NBTInputStream(InputStream is) throws IOException {
-	// TODO: do this for output stream too
-	if (!is.markSupported())
-	    is = new BufferedInputStream(is);
-	is.mark(10); // GZIP header
-	try {
-	    this.is = new DataInputStream(new GZIPInputStream(is));
-	} catch (IOException e) {
-	    is.reset();
-	    this.is = new DataInputStream(is);
-	}
+	this(is, true);
     }
 
     public NBTInputStream(InputStream is, boolean gzip) throws IOException {
@@ -101,7 +91,7 @@ public class NBTInputStream implements Closeable {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    public Tag readTag() throws IOException {
+    public Tag<?> readTag() throws IOException {
 	return readTag(0);
     }
 
@@ -114,17 +104,15 @@ public class NBTInputStream implements Closeable {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    private Tag readTag(int depth) throws IOException {
+    private Tag<?> readTag(int depth) throws IOException {
 	int type = is.readByte() & 0xFF;
 
-	String name;
+	String name = "";
 	if (type != NBTConstants.TYPE_END) {
 	    int nameLength = is.readShort() & 0xFFFF;
 	    byte[] nameBytes = new byte[nameLength];
 	    is.readFully(nameBytes);
 	    name = new String(nameBytes, NBTConstants.CHARSET);
-	} else {
-	    name = "";
 	}
 
 	return readTagPayload(type, name, depth);

@@ -39,7 +39,7 @@ package org.jnbt;
  * @author Taggart Spilman
  * 
  */
-public class EndTag extends Tag<Void> {
+public class EndTag extends Tag<Byte> {
 
     public static final String TAG_NAME = "TAG_End";
 
@@ -51,12 +51,12 @@ public class EndTag extends Tag<Void> {
     }
 
     @Override
-    public Void getValue() {
-	return null;
+    public Byte getValue() {
+	return (byte) 0;
     }
 
     @Override
-    public void setValue(Void value) {
+    public void setValue(Byte value) {
 	// do nothing
     }
 

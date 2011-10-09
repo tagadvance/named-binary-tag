@@ -73,7 +73,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jdesktop.swingx.treetable.TreeTableModel;
 import org.jnbt.ByteArrayTag;
+import org.jnbt.ByteArrayTag.ByteWrapper;
 import org.jnbt.ByteTag;
 import org.jnbt.CompoundTag;
 import org.jnbt.DoubleTag;
@@ -145,9 +147,8 @@ public class TreeFrame extends JFrame {
 
     protected Action helpAction;
 
-    /**
-     * Create the frame.
-     */
+    private TileCanvas tileCanvas;
+
     public TreeFrame() {
 	createActions();
 	initComponents();
@@ -672,7 +673,7 @@ public class TreeFrame extends JFrame {
 	TreePath path = treeTable.getPathForRow(row);
 	Object last = path.getLastPathComponent();
 
-	if (last instanceof ByteArrayTag || last instanceof Integer) {
+	if (last instanceof ByteArrayTag || last instanceof ByteWrapper) {
 	    addByteAction.setEnabled(true);
 	} else if (last instanceof ListTag) {
 	    ListTag list = (ListTag) last;
@@ -747,7 +748,9 @@ public class TreeFrame extends JFrame {
 		Alignment.LEADING).addGroup(
 		gl_contentPane
 			.createSequentialGroup()
-			.addComponent(toolBar)
+			.addComponent(toolBar, GroupLayout.PREFERRED_SIZE,
+				GroupLayout.PREFERRED_SIZE,
+				GroupLayout.PREFERRED_SIZE)
 			.addPreferredGap(ComponentPlacement.RELATED)
 			.addComponent(browsePanel)
 			.addPreferredGap(ComponentPlacement.RELATED)
@@ -1023,9 +1026,9 @@ public class TreeFrame extends JFrame {
     }
 
     private void createAndShowTileCanvas(World world) {
-	JFrame frame = new JFrame("World Editor");
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	TileCanvas tileCanvas = new TileCanvas(world) {
+	JFrame frame = new JFrame("World Viewer");
+	frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	this.tileCanvas = new TileCanvas(world) {
 	    @Override
 	    protected void blockClicked(final Block block) {
 		Cursor waitCursor = Cursor
@@ -1040,25 +1043,19 @@ public class TreeFrame extends JFrame {
 			NBTChunk chunk = (NBTChunk) b.getChunk();
 			NBTRegion region = (NBTRegion) chunk.getRegion();
 			Tag<?> chunkTag = chunk.getTag();
-			if (chunkTag instanceof CompoundTag) {
-			    CompoundTag compoundTag = (CompoundTag) chunkTag;
-			    Tag<?> level = compoundTag.search("Level");
-			    if (level instanceof CompoundTag) {
-				CompoundTag levelTag = (CompoundTag) level;
-				Tag<?> blocks = levelTag.search("Blocks");
-				if (blocks instanceof ByteArrayTag) {
-				    ByteArrayTag blocksTag = (ByteArrayTag) blocks;
-				    int index = b.getIndex();
-				    Object child = blocksTag.getChild(index);
-				    return treeTable.getPathForNode(region)
-					    .pathByAddingChild(chunk)
-					    .pathByAddingChild(level)
-					    .pathByAddingChild(blocks)
-					    .pathByAddingChild(child);
-				}
-			    }
-			}
-			return null;
+			CompoundTag compoundTag = (CompoundTag) chunkTag;
+			Tag<?> level = compoundTag.search("Level");
+			CompoundTag levelTag = (CompoundTag) level;
+			Tag<?> blocks = levelTag.search("Blocks");
+			ByteArrayTag blocksTag = (ByteArrayTag) blocks;
+			int index = b.getIndex();
+			Object child = blocksTag.getChild(index);
+			TreeTableModel model = treeTable.getTreeTableModel();
+			return treeTable.getPathForNode(region)
+				.pathByAddingChild(chunk)
+				.pathByAddingChild(level)
+				.pathByAddingChild(blocks)
+				.pathByAddingChild(child);
 		    }
 
 		    @Override
@@ -1152,6 +1149,7 @@ public class TreeFrame extends JFrame {
 	});
     }
 
+    // TODO: refactor this
     public void addTag(Tag<?> tag) {
 	if (treeTable == null) {
 	    showErrorDialog("Tree is null");
@@ -1214,15 +1212,25 @@ public class TreeFrame extends JFrame {
     }
 
     protected void updateTreeTable(Object root) {
-	treeTable = new NBTTreeTable(root);
-	treeTable.addTreeSelectionListener(new TreeSelectionListener() {
+	treeTable = new NBTTreeTable(root) {
+	    @Override
+	    public void treeExpanded(Object source, TreePath path) {
+		super.treeExpanded(source, path);
 
+		revalidate();
+		repaint();
+	    }
+	};
+	treeTable.addTreeSelectionListener(new TreeSelectionListener() {
 	    @Override
 	    public void valueChanged(TreeSelectionEvent e) {
 		updateActions();
-	    }
 
+		if (tileCanvas != null)
+		    tileCanvas.doRepaint();
+	    }
 	});
+
 	scrollPane.setViewportView(treeTable);
 
 	updateActions();
