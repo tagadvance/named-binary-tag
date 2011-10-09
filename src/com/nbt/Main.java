@@ -23,10 +23,21 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+/*
+ * TODO: TileCanvas: add other perspectives
+ * TODO: TileCanvas: add mouse hover
+ * TODO: TileCanvas: 3d editor - JMonkeyEngine ?
+ * TODO: TileCanvas: editing tools
+ * 
+ * TODO: new chunk
+ * TODO: menu open world viewer
+ * TODO: save
+ * TODO: value 2
+ */
 public class Main {
 
     public static void main(final String[] args) {
-	// setPreferredLookAndFeel();
+	setPreferredLookAndFeel();
 	EventQueue.invokeLater(new Runnable() {
 
 	    public void run() {
@@ -54,12 +65,11 @@ public class Main {
 	    }
 	});
     }
-
-    @SuppressWarnings("unused")
+    
     private static void setPreferredLookAndFeel() {
 	String[] lafs = {
-		// "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
-		UIManager.getSystemLookAndFeelClassName(),
+		//"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
+		//UIManager.getSystemLookAndFeelClassName(),
 		UIManager.getCrossPlatformLookAndFeelClassName() };
 	for (String laf : lafs) {
 	    try {

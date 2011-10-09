@@ -16,7 +16,6 @@
 
 package com.terrain;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -51,11 +50,22 @@ public class WorldChunk implements Chunk {
 	this.x = x;
 	this.z = z;
 
+	// System.out.println("populate " + this);
+	NBTInputStream is = null;
+	try {
+	    boolean gzip = false;
+	    is = new NBTInputStream(region.getChunkInputStream(x, z), gzip);
+	    this.chunkTag = is.readTag();
+	} catch (IOException e) {
+	    // TODO: don't be lazy
+	    throw new IllegalArgumentException(e);
+	} finally {
+	    IOUtils.closeQuietly(is);
+	}
+
 	this.cache = new Cache<BlockLocation, Block>() {
 	    @Override
 	    public Block apply(BlockLocation key) {
-		// TODO: should populate be called here?
-		populate();
 		return createBlock(key);
 	    }
 	};
@@ -68,23 +78,6 @@ public class WorldChunk implements Chunk {
 
     public Cache<BlockLocation, Block> getCache() {
 	return this.cache;
-    }
-
-    // TODO: beautify this
-    private void populate() {
-	if (chunkTag == null) {
-	    System.out.println("populate " + this);
-	    NBTInputStream is = null;
-	    try {
-		is = new NBTInputStream(region.getChunkInputStream(x, z));
-		chunkTag = is.readTag();
-	    } catch (IOException e) {
-		// TODO: don't be lazy
-		throw new IOError(e);
-	    } finally {
-		IOUtils.closeQuietly(is);
-	    }
-	}
     }
 
     public Region getRegion() {
@@ -198,6 +191,44 @@ public class WorldChunk implements Chunk {
     @Override
     public String toString() {
 	return getName();
+    }
+
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((blocks == null) ? 0 : blocks.hashCode());
+	result = prime * result
+		+ ((chunkTag == null) ? 0 : chunkTag.hashCode());
+	result = prime * result + x;
+	result = prime * result + z;
+	return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	WorldChunk other = (WorldChunk) obj;
+	if (blocks == null) {
+	    if (other.blocks != null)
+		return false;
+	} else if (!blocks.equals(other.blocks))
+	    return false;
+	if (chunkTag == null) {
+	    if (other.chunkTag != null)
+		return false;
+	} else if (!chunkTag.equals(other.chunkTag))
+	    return false;
+	if (x != other.x)
+	    return false;
+	if (z != other.z)
+	    return false;
+	return true;
     }
 
 }

@@ -26,6 +26,7 @@ import com.google.common.collect.MapMaker;
 
 // TODO: refactor this to use CacheBuilder
 // http://guava-libraries.googlecode.com/svn/trunk/javadoc/com/google/common/cache/CacheBuilder.html
+// make sure the key object overrides #equals and #hashCode
 public abstract class Cache<K, V> implements Function<K, V>,
 	MapEvictionListener<K, V>, Map<K, V> {
 

@@ -19,6 +19,7 @@ package com.terrain;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,7 +83,8 @@ public class WorldRegion extends RegionFile implements Region {
     @Override
     public List<Chunk> getChunks() {
 	if (chunks == null) {
-	    chunks = new ArrayList<Chunk>();
+	    // this must be synchronized to avoid ConcurrentModificationException
+	    chunks = Collections.synchronizedList(new ArrayList<Chunk>());
 	    for (ChunkLocation cl : ChunkLocation.createList())
 		if (hasChunk(cl.getX(), cl.getZ()))
 		    chunks.add(getChunk(cl.getX(), cl.getZ()));
@@ -98,6 +100,37 @@ public class WorldRegion extends RegionFile implements Region {
     @Override
     public String toString() {
 	return getName();
+    }
+
+    @Override
+    public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((chunks == null) ? 0 : chunks.hashCode());
+	result = prime * result + x;
+	result = prime * result + z;
+	return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj)
+	    return true;
+	if (obj == null)
+	    return false;
+	if (getClass() != obj.getClass())
+	    return false;
+	WorldRegion other = (WorldRegion) obj;
+	if (chunks == null) {
+	    if (other.chunks != null)
+		return false;
+	} else if (!chunks.equals(other.chunks))
+	    return false;
+	if (x != other.x)
+	    return false;
+	if (z != other.z)
+	    return false;
+	return true;
     }
 
 }

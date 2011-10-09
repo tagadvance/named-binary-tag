@@ -17,7 +17,6 @@
 package com.nbt;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -26,10 +25,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -43,6 +43,7 @@ import resources.Resource;
 
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
+import com.tag.MouseDragAndDrop;
 import com.tag.Utils;
 import com.terrain.Block;
 import com.terrain.World;
@@ -73,9 +74,7 @@ public class TileCanvas extends JComponent {
     private int x, z, altitude;
     private int tileWidth = 16, tileHeight = 16;
 
-    final JLabel xl = new JLabel();
-    final JLabel zl = new JLabel();
-    final JLabel al = new JLabel();
+    private HUD hud;
 
     public TileCanvas(final World world) {
 	Validate.notNull(world, "world must not be null");
@@ -101,37 +100,81 @@ public class TileCanvas extends JComponent {
 		blockClicked(block);
 	    }
 	});
+	addMouseWheelListener(new MouseWheelListener() {
+	    @Override
+	    public void mouseWheelMoved(MouseWheelEvent e) {
+		int amount = e.getWheelRotation();
+		int altitude = getAltitude();
+		setAltitude(amount + altitude);
+
+		updateXYZ();
+		doRepaint();
+	    }
+	});
+	new MouseDragAndDrop(this) {
+
+	    private int tileX, tileZ;
+
+	    @Override
+	    public void selected(MouseEvent e) {
+		this.tileX = getTileX();
+		this.tileZ = getTileZ();
+	    }
+
+	    @Override
+	    public void dragged(MouseEvent e) {
+		MouseEvent startEvent = getStartEvent();
+		Point startPt = startEvent.getPoint();
+		Point releasePt = e.getPoint();
+		int x = tileX + (pixelsToTile(startPt.x) - pixelsToTile(releasePt.x));
+		int z = tileZ + (pixelsToTile(startPt.y) - pixelsToTile(releasePt.y));
+		setTileX(x);
+		setTileZ(z);
+
+		updateXYZ();
+		doRepaint();
+	    }
+
+	    @Override
+	    public void dropped(MouseEvent press, MouseEvent release) {
+		// Point startPt = press.getPoint();
+		// Point releasePt = release.getPoint();
+		// int x = getTileX() + pixelsToTile(startPt.x - releasePt.x);
+		// int z = getTileZ() + pixelsToTile(startPt.y - releasePt.y);
+		// setTileX(x);
+		// setTileZ(z);
+		//
+		// updateXYZ();
+		// doRepaint();
+	    }
+
+	}.install();
 
 	setLayout(null);
-
-	JPanel hud = new JPanel();
-	hud.setOpaque(false);
-
-	BoxLayout boxLayout = new BoxLayout(hud, BoxLayout.Y_AXIS);
-	hud.setLayout(boxLayout);
-
-	xl.setAlignmentX(Component.LEFT_ALIGNMENT);
-	hud.add(xl);
-
-	zl.setAlignmentX(Component.LEFT_ALIGNMENT);
-	hud.add(zl);
-
-	al.setAlignmentX(Component.LEFT_ALIGNMENT);
-	hud.add(al);
-
-	hud.setBounds(0, 0, 200, 200);
+	hud = new HUD();
+	int width = 200, height = 200;
+	hud.setSize(width, height);
 	add(hud);
 
-	// this is here to refresh block changes
-	final Timer timer = new Timer();
-	long delay = 1000;
-	timer.schedule(new TimerTask() {
+	addMouseMotionListener(new MouseMotionAdapter() {
 	    @Override
-	    public void run() {
-		if (isVisible())
-		    doRepaint();
+	    public void mouseMoved(MouseEvent e) {
+		updateXYZ();
 	    }
-	}, delay, delay);
+	});
+    }
+
+    private void updateXYZ() {
+	Point pt = getMousePosition();
+	if (pt == null)
+	    pt = new Point();
+
+	int x = getTileX() + pixelsToTile(pt.x);
+	int z = getTileZ() + pixelsToTile(pt.y);
+	hud.xl.setText("X: " + x);
+	hud.zl.setText("Z: " + z);
+
+	hud.al.setText("Y: " + getAltitude());
     }
 
     @Override
@@ -142,7 +185,7 @@ public class TileCanvas extends JComponent {
 
 	g2d.setColor(Color.BLACK);
 	int x = 0, y = 0;
-	Dimension size = getPreferredSize();
+	Dimension size = getSize();
 	g2d.fillRect(x, y, size.width, size.height);
 
 	final int altitude = getAltitude();
@@ -192,20 +235,22 @@ public class TileCanvas extends JComponent {
 	    break;
 	}
 
-	xl.setText("X: " + getTileX());
-	zl.setText("Z: " + getTileZ());
-	al.setText("Y: " + getAltitude());
+	updateXYZ();
 
 	doRepaint();
     }
 
     public void doRepaint() {
-	SwingUtilities.invokeLater(new Runnable() {
+	Runnable runnable = new Runnable() {
 	    @Override
 	    public void run() {
 		repaint();
 	    }
-	});
+	};
+	if (SwingUtilities.isEventDispatchThread())
+	    runnable.run();
+	else
+	    SwingUtilities.invokeLater(runnable);
     }
 
     protected void blockClicked(Block block) {
@@ -220,6 +265,7 @@ public class TileCanvas extends JComponent {
 	Block block = world.getBlock(x, y, z);
 	if (block == null)
 	    return null;
+
 	int id = block.getBlockID();
 	return register.getRecord(id);
     }
@@ -262,7 +308,9 @@ public class TileCanvas extends JComponent {
     }
 
     public int getTileWidth() {
-	return tileWidth;
+	int width = getWidth();
+	int tileWidth = (width / SPRITE_SIZE) + 1;
+	return Math.max(this.tileWidth, tileWidth);
     }
 
     public void setTileWidth(int tileWidth) {
@@ -272,7 +320,9 @@ public class TileCanvas extends JComponent {
     }
 
     public int getTileHeight() {
-	return tileHeight;
+	int height = getHeight();
+	int tileHeight = (height / SPRITE_SIZE) + 1;
+	return Math.max(this.tileHeight, tileHeight);
     }
 
     public void setTileHeight(int tileHeight) {
@@ -285,6 +335,35 @@ public class TileCanvas extends JComponent {
 	int width = getTileWidth() * SPRITE_SIZE;
 	int height = getTileHeight() * SPRITE_SIZE;
 	super.setPreferredSize(new Dimension(width, height));
+    }
+
+    private static class HUD extends JPanel {
+
+	public final JLabel xl;
+	public final JLabel zl;
+	public final JLabel al;
+
+	public HUD() {
+	    super();
+
+	    BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
+	    setLayout(boxLayout);
+
+	    setOpaque(false);
+
+	    add(xl = createLabel(" "));
+	    add(zl = createLabel(" "));
+	    add(al = createLabel(" "));
+	}
+
+	protected JLabel createLabel(String text) {
+	    JLabel label = new JLabel(text);
+	    label.setHorizontalAlignment(JLabel.LEADING);
+	    label.setForeground(Color.WHITE);
+	    label.setOpaque(false);
+	    return label;
+	}
+
     }
 
 }

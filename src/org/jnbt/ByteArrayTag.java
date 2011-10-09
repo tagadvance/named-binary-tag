@@ -152,10 +152,10 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 
 	@Override
 	public void setValueAt(Object value, int column) {
-	    if (value instanceof Integer) {
-		int i = (Integer) value;
-		switch (column) {
-		case NBTNode.COLUMN_VALUE:
+	    switch (column) {
+	    case NBTNode.COLUMN_VALUE:
+		if (value instanceof Integer) {
+		    int i = (Integer) value;
 		    byte[] bytes = getValue();
 		    bytes[index] = (byte) i;
 		}
@@ -171,15 +171,12 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	    if (getClass() != obj.getClass())
 		return false;
 	    ByteWrapper other = (ByteWrapper) obj;
-	    if (!Arrays.equals(getBytes(), other.getBytes()))
+	    // TODO: clean up this train wreck
+	    if (!Arrays.equals(getTag().getValue(), other.getTag().getValue()))
 		return false;
 	    if (index != other.index)
 		return false;
 	    return true;
-	}
-
-	private byte[] getBytes() {
-	    return getValue();
 	}
 
     }

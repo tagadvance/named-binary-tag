@@ -19,6 +19,7 @@ package com.nbt;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Image;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.List;
 
@@ -56,6 +57,7 @@ import resources.Resource;
 
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
+import com.nbt.world.NBTFileBranch;
 import com.tag.HexUtils;
 import com.tag.ImageFactory;
 import com.tag.SwingWorkerUnlimited;
@@ -194,6 +196,15 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    Icon icon = new ImageIcon(image);
 		    setIcon(icon);
 		}
+		
+		if (value instanceof NBTFileBranch) {
+		    NBTFileBranch branch = (NBTFileBranch) value;
+		    File file = branch.getFile();
+		    if (file.isFile()) {
+			Icon icon = getLeafIcon();
+			setIcon(icon);
+		    }
+		}
 
 		return this;
 	    }
@@ -208,48 +219,41 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
     @Override
     public void treeWillExpand(final TreeExpansionEvent event)
 	    throws ExpandVetoException {
+	final TreePath path = event.getPath();
+	final Object source = path.getLastPathComponent();
+	if (!(source instanceof LazyBranch))
+	    return;
+
+	final LazyBranch lazyBranch = (LazyBranch) source;
+	if (lazyBranch.isPopulated())
+	    return;
+
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 	setCursor(waitCursor);
 
-	// TODO: clean this up
-	final TreePath path = event.getPath();
-	final Object source = path.getLastPathComponent();
-	if (!(source instanceof LazyBranch)) {
-	    resetCursor();
-	    return;
-	}
-	final LazyBranch lazyBranch = (LazyBranch) source;
-	if (lazyBranch.isPopulated()) {
-	    resetCursor();
-	    return;
-	}
 	SwingWorkerUnlimited.execure(new SwingWorker<Void, Void>() {
 
 	    @Override
 	    protected Void doInBackground() throws Exception {
+		System.out.println(lazyBranch);
 		lazyBranch.getChildren();
 		return null;
 	    }
 
 	    @Override
 	    protected void done() {
-		NBTTreeTableModel model = getTreeTableModel();
-		Object[] children = lazyBranch.getChildren();
-		int[] childIndices = new int[children.length];
-		for (int i = 0; i < children.length; i++)
-		    childIndices[i] = i;
-		model.fireTreeNodesInserted(source, path, childIndices,
-			children);
-
-		resetCursor();
+		treeExpanded(source, path);
 	    }
 
 	});
     }
 
-    private void resetCursor() {
-	Cursor cursor = Cursor.getDefaultCursor();
-	setCursor(cursor);
+    protected void treeExpanded(Object source, TreePath path) {
+	NBTTreeTableModel model = getTreeTableModel();
+	model.fireTreeNodesInserted(source, path);
+
+	Cursor defaultCursor = Cursor.getDefaultCursor();
+	setCursor(defaultCursor);
     }
 
     @Override
