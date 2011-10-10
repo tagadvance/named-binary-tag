@@ -16,6 +16,26 @@
 
 package com.tag;
 
+import static java.awt.RenderingHints.KEY_ALPHA_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.KEY_COLOR_RENDERING;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_RENDERING;
+import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_DEFAULT;
+import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY;
+import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_OFF;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.RenderingHints.VALUE_COLOR_RENDER_DEFAULT;
+import static java.awt.RenderingHints.VALUE_COLOR_RENDER_QUALITY;
+import static java.awt.RenderingHints.VALUE_COLOR_RENDER_SPEED;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+import static java.awt.RenderingHints.VALUE_RENDER_DEFAULT;
+import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 import static java.awt.image.BufferedImage.TYPE_CUSTOM;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
@@ -191,40 +211,27 @@ public class Thumbnail {
 	Map<RenderingHints.Key, Object> hints = new HashMap<RenderingHints.Key, Object>();
 	switch (quality) {
 	case SPEED:
-	    hints.put(RenderingHints.KEY_ALPHA_INTERPOLATION,
-		    RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-	    hints.put(RenderingHints.KEY_ANTIALIASING,
-		    RenderingHints.VALUE_ANTIALIAS_OFF);
-	    hints.put(RenderingHints.KEY_COLOR_RENDERING,
-		    RenderingHints.VALUE_COLOR_RENDER_SPEED);
-	    hints.put(RenderingHints.KEY_INTERPOLATION,
-		    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-	    hints.put(RenderingHints.KEY_RENDERING,
-		    RenderingHints.VALUE_RENDER_SPEED);
+	    hints.put(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_SPEED);
+	    hints.put(KEY_ANTIALIASING, VALUE_ANTIALIAS_OFF);
+	    hints.put(KEY_COLOR_RENDERING, VALUE_COLOR_RENDER_SPEED);
+	    hints.put(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+	    hints.put(KEY_RENDERING, VALUE_RENDER_SPEED);
 	    break;
 	case QUALITY:
-	    hints.put(RenderingHints.KEY_ALPHA_INTERPOLATION,
-		    RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-	    hints.put(RenderingHints.KEY_ANTIALIASING,
-		    RenderingHints.VALUE_ANTIALIAS_ON);
-	    hints.put(RenderingHints.KEY_COLOR_RENDERING,
-		    RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-	    hints.put(RenderingHints.KEY_INTERPOLATION,
-		    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-	    hints.put(RenderingHints.KEY_RENDERING,
-		    RenderingHints.VALUE_RENDER_QUALITY);
+	    hints.put(KEY_ALPHA_INTERPOLATION,
+		    VALUE_ALPHA_INTERPOLATION_QUALITY);
+	    hints.put(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+	    hints.put(KEY_COLOR_RENDERING, VALUE_COLOR_RENDER_QUALITY);
+	    hints.put(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
+	    hints.put(KEY_RENDERING, VALUE_RENDER_QUALITY);
 	    break;
 	default:
-	    hints.put(RenderingHints.KEY_ALPHA_INTERPOLATION,
-		    RenderingHints.VALUE_ALPHA_INTERPOLATION_DEFAULT);
-	    hints.put(RenderingHints.KEY_ANTIALIASING,
-		    RenderingHints.VALUE_ANTIALIAS_DEFAULT);
-	    hints.put(RenderingHints.KEY_COLOR_RENDERING,
-		    RenderingHints.VALUE_COLOR_RENDER_DEFAULT);
-	    hints.put(RenderingHints.KEY_INTERPOLATION,
-		    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-	    hints.put(RenderingHints.KEY_RENDERING,
-		    RenderingHints.VALUE_RENDER_DEFAULT);
+	    hints.put(KEY_ALPHA_INTERPOLATION,
+		    VALUE_ALPHA_INTERPOLATION_DEFAULT);
+	    hints.put(KEY_ANTIALIASING, VALUE_ANTIALIAS_DEFAULT);
+	    hints.put(KEY_COLOR_RENDERING, VALUE_COLOR_RENDER_DEFAULT);
+	    hints.put(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+	    hints.put(KEY_RENDERING, VALUE_RENDER_DEFAULT);
 	    break;
 	}
 	return hints;
