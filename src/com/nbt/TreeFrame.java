@@ -754,7 +754,8 @@ public class TreeFrame extends JFrame {
 	TreePath path = treeTable.getPathForRow(row);
 	Object last = path.getLastPathComponent();
 	TreePath parentPath = path.getParentPath();
-	Object parentLast = parentPath.getLastPathComponent();
+	Object parentLast = parentPath == null ? null : parentPath
+		.getLastPathComponent();
 
 	if (last instanceof ByteArrayTag || parentLast instanceof ByteArrayTag
 		|| last instanceof ByteWrapper
