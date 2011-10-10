@@ -18,11 +18,14 @@ package com.nbt;
 
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -69,11 +72,11 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jdesktop.swingx.treetable.TreeTableModel;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.ByteArrayTag.ByteWrapper;
 import org.jnbt.ByteTag;
@@ -91,17 +94,21 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.nbt.data.SpriteRecord;
 import com.nbt.world.NBTChunk;
+import com.nbt.world.NBTFileBranch;
 import com.nbt.world.NBTRegion;
 import com.nbt.world.NBTWorld;
 import com.tag.FramePreferences;
 import com.tag.Hyperlink;
 import com.tag.ImageFactory;
 import com.tag.SwingWorkerUnlimited;
+import com.tag.Thumbnail;
 import com.terrain.Block;
 import com.terrain.Region;
 import com.terrain.World;
 import com.terrain.WorldBlock;
+import com.terrain.WorldDirectory;
 
 // TODO: change (instanceof Integer) to ByteWrapper
 @SuppressWarnings("serial")
@@ -123,7 +130,7 @@ public class TreeFrame extends JFrame {
     private JScrollPane scrollPane;
 
     protected Action newAction;
-    protected Action openAction;
+    protected Action browseAction;
     protected Action saveAction;
     protected Action saveAsAction;
     protected Action refreshAction;
@@ -133,6 +140,8 @@ public class TreeFrame extends JFrame {
     protected Action copyAction;
     protected Action pasteAction;
     protected Action deleteAction;
+
+    protected Action openAction;
 
     protected Action addByteAction;
     protected Action addShortAction;
@@ -176,7 +185,7 @@ public class TreeFrame extends JFrame {
 
 	};
 
-	openAction = new NBTAction("Open File...", "Open", "Open File...",
+	browseAction = new NBTAction("Browse...", "Open", "Browse...",
 		KeyEvent.VK_O) {
 
 	    {
@@ -279,7 +288,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    SMALL_ICON,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.smallIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -288,7 +297,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    LARGE_ICON_KEY,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.largeIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -310,7 +319,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    SMALL_ICON,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.smallIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -319,7 +328,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    LARGE_ICON_KEY,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.largeIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -341,7 +350,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    SMALL_ICON,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.smallIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -350,7 +359,7 @@ public class TreeFrame extends JFrame {
 		try {
 		    putValue(
 			    LARGE_ICON_KEY,
-			    new ImageIcon(factory.readImage(name,
+			    new ImageIcon(factory.readGeneralImage(name,
 				    NBTAction.largeIconSize)));
 		} catch (IOException e) {
 		    e.printStackTrace();
@@ -370,6 +379,26 @@ public class TreeFrame extends JFrame {
 		int row = treeTable.getSelectedRow();
 		TreePath path = treeTable.getPathForRow(row);
 		Object last = path.getLastPathComponent();
+
+		if (last instanceof NBTFileBranch) {
+		    NBTFileBranch branch = (NBTFileBranch) last;
+		    File file = branch.getFile();
+		    String name = file.getName();
+		    String message = "Are you sure you want to delete " + name
+			    + "?";
+		    String title = "Continue?";
+		    int option = JOptionPane.showConfirmDialog(TreeFrame.this,
+			    message, title, JOptionPane.OK_CANCEL_OPTION);
+		    switch (option) {
+		    case JOptionPane.CANCEL_OPTION:
+			return;
+		    }
+		    if (!FileUtils.deleteQuietly(file)) {
+			showErrorDialog(name + " could not be deleted.");
+			return;
+		    }
+		}
+
 		TreePath parentPath = path.getParentPath();
 		Object parentLast = parentPath.getLastPathComponent();
 		NBTTreeTableModel model = treeTable.getTreeTableModel();
@@ -407,6 +436,62 @@ public class TreeFrame extends JFrame {
 		path = treeTable.getPathForRow(row);
 		if (path != null)
 		    treeTable.setRowSelectionInterval(row, row);
+	    }
+
+	};
+
+	openAction = new NBTAction("Open...", "Open...", KeyEvent.VK_T) {
+
+	    {
+		putValue(ACCELERATOR_KEY,
+			KeyStroke.getKeyStroke('T', Event.CTRL_MASK));
+
+		final int diamondPickaxe = 278;
+		SpriteRecord record = NBTTreeTable.register
+			.getRecord(diamondPickaxe);
+		BufferedImage image = record.getImage();
+		setSmallIcon(image);
+
+		int width = 24, height = 24;
+		Dimension size = new Dimension(width, height);
+		Map<RenderingHints.Key, ?> hints = Thumbnail
+			.createRenderingHints(Thumbnail.QUALITY);
+		BufferedImage largeImage = Thumbnail.createThumbnail(image,
+			size, hints);
+		setLargeIcon(largeImage);
+	    }
+
+	    public void actionPerformed(ActionEvent e) {
+		TreePath path = treeTable.getPath();
+		if (path == null)
+		    return;
+
+		Object last = path.getLastPathComponent();
+		if (last instanceof World) {
+		    World world = (World) last;
+		    createAndShowTileCanvas(world);
+		    return;
+		}
+
+		if (last instanceof NBTFileBranch) {
+		    NBTFileBranch fileBranch = (NBTFileBranch) last;
+		    File file = fileBranch.getFile();
+		    try {
+			open(file);
+		    } catch (IOException ex) {
+			ex.printStackTrace();
+			showErrorDialog(ex.getMessage());
+		    }
+		}
+	    }
+
+	    private void open(File file) throws IOException {
+		if (Desktop.isDesktopSupported()) {
+		    Desktop desktop = Desktop.getDesktop();
+		    if (desktop.isSupported(Desktop.Action.OPEN)) {
+			desktop.open(file);
+		    }
+		}
 	    }
 
 	};
@@ -663,6 +748,10 @@ public class TreeFrame extends JFrame {
 	for (Action action : actionMap.values())
 	    action.setEnabled(false);
 
+	Action[] actions = { openAction };
+	for (Action action : actions)
+	    action.setEnabled(false);
+
 	if (treeTable == null)
 	    return;
 
@@ -685,6 +774,8 @@ public class TreeFrame extends JFrame {
 	} else if (last instanceof CompoundTag) {
 	    for (Action action : actionMap.values())
 		action.setEnabled(true);
+	} else if (last instanceof World || last instanceof NBTFileBranch) {
+	    openAction.setEnabled(true);
 	}
     }
 
@@ -710,7 +801,7 @@ public class TreeFrame extends JFrame {
 
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
-		openAction.actionPerformed(e);
+		browseAction.actionPerformed(e);
 	    }
 
 	});
@@ -800,32 +891,30 @@ public class TreeFrame extends JFrame {
 	JMenuBar menuBar = new JMenuBar();
 
 	JMenu menuFile = new JMenu("File");
-	menuFile.add(new JMenuItem(newAction));
-	menuFile.add(new JMenuItem(openAction));
-	menuFile.add(new JMenuItem(saveAction));
-	menuFile.add(new JMenuItem(saveAsAction));
-	menuFile.add(new JMenuItem(refreshAction));
-	menuFile.add(new JMenuItem(exitAction));
+	Action[] fileActions = { newAction, browseAction, saveAction,
+		saveAsAction, refreshAction, exitAction };
+	for (Action action : fileActions)
+	    menuFile.add(new JMenuItem(action));
 	menuBar.add(menuFile);
 
 	JMenu menuEdit = new JMenu("Edit");
-	menuEdit.add(new JMenuItem(cutAction));
-	menuEdit.add(new JMenuItem(copyAction));
-	menuEdit.add(new JMenuItem(pasteAction));
-	menuEdit.addSeparator();
-	menuEdit.add(new JMenuItem(deleteAction));
-	menuEdit.addSeparator();
-	menuEdit.add(new JMenuItem(addByteAction));
-	menuEdit.add(new JMenuItem(addShortAction));
-	menuEdit.add(new JMenuItem(addIntAction));
-	menuEdit.add(new JMenuItem(addLongAction));
-	menuEdit.add(new JMenuItem(addFloatAction));
-	menuEdit.add(new JMenuItem(addDoubleAction));
-	menuEdit.add(new JMenuItem(addByteArrayAction));
-	menuEdit.add(new JMenuItem(addStringAction));
-	menuEdit.add(new JMenuItem(addListAction));
-	menuEdit.add(new JMenuItem(addCompoundAction));
+	Action[] editActions = { cutAction, copyAction, pasteAction, null,
+		deleteAction, null, addByteAction, addShortAction,
+		addIntAction, addLongAction, addFloatAction, addDoubleAction,
+		addByteArrayAction, addStringAction, addListAction,
+		addCompoundAction };
+	for (Action action : editActions) {
+	    if (action == null) {
+		menuEdit.addSeparator();
+	    } else {
+		menuEdit.add(new JMenuItem(action));
+	    }
+	}
 	menuBar.add(menuEdit);
+
+	JMenu menuView = new JMenu("View");
+	menuView.add(new JMenuItem(openAction));
+	menuBar.add(menuView);
 
 	JMenu menuHelp = new JMenu("Help");
 	menuHelp.add(new JMenuItem(helpAction));
@@ -838,26 +927,19 @@ public class TreeFrame extends JFrame {
 	JToolBar toolBar = new JToolBar();
 	toolBar.setFloatable(false);
 
-	toolBar.add(new ToolBarButton(newAction));
-	toolBar.add(new ToolBarButton(openAction));
-	toolBar.add(new ToolBarButton(saveAction));
-	toolBar.add(new ToolBarButton(saveAsAction));
-	toolBar.add(new ToolBarButton(refreshAction));
-	toolBar.addSeparator();
-
-	toolBar.add(new ToolBarButton(deleteAction));
-	toolBar.addSeparator();
-
-	toolBar.add(new ToolBarButton(addByteAction));
-	toolBar.add(new ToolBarButton(addShortAction));
-	toolBar.add(new ToolBarButton(addIntAction));
-	toolBar.add(new ToolBarButton(addLongAction));
-	toolBar.add(new ToolBarButton(addFloatAction));
-	toolBar.add(new ToolBarButton(addDoubleAction));
-	toolBar.add(new ToolBarButton(addByteArrayAction));
-	toolBar.add(new ToolBarButton(addStringAction));
-	toolBar.add(new ToolBarButton(addListAction));
-	toolBar.add(new ToolBarButton(addCompoundAction));
+	Action[] actions = { newAction, browseAction, saveAction, saveAsAction,
+		refreshAction, null, deleteAction, null, openAction, null,
+		addByteAction, addShortAction, addIntAction, addLongAction,
+		addFloatAction, addDoubleAction, addByteArrayAction,
+		addStringAction, addListAction, addCompoundAction };
+	for (Action action : actions) {
+	    if (action == null) {
+		toolBar.addSeparator();
+	    } else {
+		ToolBarButton button = new ToolBarButton(action);
+		toolBar.add(button);
+	    }
+	}
 
 	return toolBar;
     }
@@ -893,7 +975,7 @@ public class TreeFrame extends JFrame {
     public void doImport(final File file) {
 	if (file.isDirectory()) {
 	    doImportDirectory(file);
-	} else {
+	} else if (file.isFile()) {
 	    doImportFile(file);
 	}
     }
@@ -992,20 +1074,26 @@ public class TreeFrame extends JFrame {
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 	setCursor(waitCursor);
 
-	SwingWorkerUnlimited.execure(new SwingWorker<NBTWorld, Void>() {
+	SwingWorkerUnlimited.execure(new SwingWorker<NBTBranch, Void>() {
 
 	    @Override
-	    protected NBTWorld doInBackground() throws Exception {
-		return new NBTWorld(base);
+	    protected NBTBranch doInBackground() throws Exception {
+		return createBranch(base);
+	    }
+
+	    // TODO: avoid duplicate code in NBTFileBranch#createBranchCache()
+	    private NBTBranch createBranch(File file) {
+		String[] names = file.list();
+		if (ArrayUtils.contains(names, WorldDirectory.DIRECTORY_REGION))
+		    return new NBTWorld(file);
+		return new NBTFileBranch(file);
 	    }
 
 	    @Override
 	    protected void done() {
-		NBTWorld world = null;
+		NBTBranch branch = null;
 		try {
-		    world = get();
-
-		    createAndShowTileCanvas(world);
+		    branch = get();
 		} catch (InterruptedException e) {
 		    e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -1016,7 +1104,7 @@ public class TreeFrame extends JFrame {
 		}
 		textFile.setText(base.getAbsolutePath());
 
-		updateTreeTable(world);
+		updateTreeTable(branch);
 
 		Cursor defaultCursor = Cursor.getDefaultCursor();
 		setCursor(defaultCursor);
@@ -1026,7 +1114,8 @@ public class TreeFrame extends JFrame {
     }
 
     private void createAndShowTileCanvas(World world) {
-	JFrame frame = new JFrame("World Viewer");
+	String title = world.getName();
+	JFrame frame = new JFrame(title);
 	frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	this.tileCanvas = new TileCanvas(world) {
 	    @Override
@@ -1050,7 +1139,6 @@ public class TreeFrame extends JFrame {
 			ByteArrayTag blocksTag = (ByteArrayTag) blocks;
 			int index = b.getIndex();
 			Object child = blocksTag.getChild(index);
-			TreeTableModel model = treeTable.getTreeTableModel();
 			return treeTable.getPathForNode(region)
 				.pathByAddingChild(chunk)
 				.pathByAddingChild(level)
@@ -1079,9 +1167,7 @@ public class TreeFrame extends JFrame {
 		});
 	    }
 	};
-	tileCanvas.setTileWidth(32);
-	tileCanvas.setTileHeight(32);
-	tileCanvas.setAltitude(70);
+	tileCanvas.restore();
 	frame.add(tileCanvas);
 	frame.pack();
 	frame.setVisible(true);

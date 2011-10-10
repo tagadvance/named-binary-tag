@@ -183,7 +183,7 @@ public class WorldDirectory implements World {
 
     @Override
     public String getName() {
-	return base.toString();
+	return base.getName();
     }
 
     public String toString() {

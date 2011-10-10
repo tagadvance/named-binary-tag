@@ -41,7 +41,7 @@ public class ImageFactory {
 
     }
 
-    public Image readImage(String imageName, int size) throws IOException {
+    public Image readGeneralImage(String imageName, int size) throws IOException {
 	final String extension = ".gif";
 	String name = "/toolbarButtonGraphics/general/" + imageName + size
 		+ extension;

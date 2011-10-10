@@ -69,7 +69,23 @@ import com.terrain.Block;
  * 
  */
 @SuppressWarnings("serial")
-public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener {
+public class NBTTreeTable extends JXTreeTable implements
+	TreeWillExpandListener {
+
+    static final Register<SpriteRecord> register;
+    static {
+	register = new Register<SpriteRecord>() {
+	    @Override
+	    protected SpriteRecord createRecord(String[] row) {
+		return new SpriteRecord(row);
+	    }
+	};
+	Resource resource = new Resource();
+	List<String[]> blocks = resource.getCSV("csv/blocks.csv");
+	register.load(blocks);
+	List<String[]> items = resource.getCSV("csv/items.csv");
+	register.load(items);
+    }
 
     public NBTTreeTable(Object root) {
 	super(new NBTTreeTableModel(root));
@@ -115,19 +131,6 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	    }
 
 	});
-
-	// TODO: find a better spot for this
-	final Register<SpriteRecord> register = new Register<SpriteRecord>() {
-	    @Override
-	    protected SpriteRecord createRecord(String[] row) {
-		return new SpriteRecord(row);
-	    }
-	};
-	Resource resource = new Resource();
-	List<String[]> blocks = resource.getCSV("csv/blocks.csv");
-	register.load(blocks);
-	List<String[]> items = resource.getCSV("csv/items.csv");
-	register.load(items);
 
 	setTreeCellRenderer(new DefaultTreeCellRenderer() {
 
@@ -196,7 +199,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    Icon icon = new ImageIcon(image);
 		    setIcon(icon);
 		}
-		
+
 		if (value instanceof NBTFileBranch) {
 		    NBTFileBranch branch = (NBTFileBranch) value;
 		    File file = branch.getFile();
@@ -261,6 +264,11 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	    throws ExpandVetoException {
     }
 
+    public TreePath getPath() {
+	int row = getSelectedRow();
+	return getPathForRow(row);
+    }
+
     public TreePath getPathForNode(Object node) {
 	NBTTreeTableModel treeTableModel = getTreeTableModel();
 	Object root = treeTableModel.getRoot();
@@ -275,8 +283,9 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
      */
     private TreePath getPathForNode(TreePath path, Object searchNode) {
 	Object node = path.getLastPathComponent();
-	if (node == searchNode)
+	if (node == searchNode) {
 	    return path;
+	}
 
 	// TODO: performance fix
 	if (searchNode instanceof LazyBranch) {
