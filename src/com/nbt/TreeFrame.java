@@ -758,6 +758,9 @@ public class TreeFrame extends JFrame {
 		|| parentLast instanceof ByteWrapper) {
 	    addByteAction.setEnabled(true);
 	} else if (last instanceof ListTag || parentLast instanceof ListTag) {
+	    if (!(last instanceof ListTag))
+		last = parentLast;
+
 	    ListTag list = (ListTag) last;
 	    @SuppressWarnings("unchecked")
 	    Class<Tag<?>> c = (Class<Tag<?>>) list.getType();
