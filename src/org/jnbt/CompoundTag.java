@@ -45,8 +45,8 @@ import com.nbt.NBTBranch;
  * @author Taggart Spilman
  * 
  */
-public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch,
-	Searchable {
+public class CompoundTag extends Tag<Map<String, Tag<?>>> implements
+	Mutable<Tag<?>>, NBTBranch, Searchable {
 
     public static final String TAG_NAME = "TAG_Compound";
 
@@ -61,6 +61,30 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements NBTBranch,
     @Override
     protected Map<String, Tag<?>> createDefaultValue() {
 	return new LinkedHashMap<String, Tag<?>>();
+    }
+
+    @Override
+    public void add(Tag<?> value) {
+	Map<String, Tag<?>> list = getValue();
+	String name = value.getName();
+	list.put(name, value);
+    }
+
+    @Override
+    public void add(int index, Tag<?> value) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void remove(int index) {
+	Map<String, Tag<?>> map = getValue();
+	int i = 0;
+	for (String key : map.keySet()) {
+	    if (i++ == index) {
+		map.remove(key);
+		break;
+	    }
+	}
     }
 
     @Override

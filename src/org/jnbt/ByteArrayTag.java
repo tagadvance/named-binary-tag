@@ -1,7 +1,11 @@
 package org.jnbt;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
@@ -48,12 +52,13 @@ import com.terrain.Saveable;
  * 
  */
 // TODO: Saveable here is a hack and should be removed
-public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
+public class ByteArrayTag extends Tag<byte[]> implements Mutable<Byte>,
+	NBTBranch {
 
     public static final String TAG_NAME = "TAG_Byte_Array";
-    
+
     private boolean modified;
-    
+
     public ByteArrayTag(String name) {
 	super(name);
     }
@@ -65,6 +70,37 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
     @Override
     protected byte[] createDefaultValue() {
 	return new byte[] {};
+    }
+
+    @Override
+    public void add(Byte b) {
+	byte[] value = getValue();
+	byte[] newValue = new byte[value.length + 1];
+	System.arraycopy(value, 0, newValue, 0, value.length);
+	setValue(newValue);
+    }
+
+    @Override
+    public void add(int index, Byte b) {
+	byte[] value = getValue();
+	Byte[] bytes = ArrayUtils.toObject(value);
+	List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
+	list.add(index, (byte) 0);
+	bytes = list.toArray(bytes);
+	value = ArrayUtils.toPrimitive(bytes);
+	setValue(value);
+    }
+
+    @Override
+    public void remove(int index) {
+	byte[] value = getValue();
+	Byte[] bytes = ArrayUtils.toObject(value);
+	List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
+	list.remove(index);
+	bytes = new Byte[list.size()];
+	list.toArray(bytes);
+	value = ArrayUtils.toPrimitive(bytes);
+	setValue(value);
     }
 
     @Override
@@ -102,7 +138,7 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	}
 	return -1;
     }
-    
+
     @Override
     public void mark() {
 	this.modified = false;
