@@ -55,6 +55,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -128,9 +129,11 @@ public class TreeFrame extends JFrame {
     private NBTTreeTable treeTable;
     private JScrollPane scrollPane;
 
+    // TODO: restore newAction
     protected Action newAction;
     protected Action browseAction;
     protected Action saveAction;
+    // TODO: restore saveAsAction
     protected Action saveAsAction;
     protected Action refreshAction;
     protected Action exitAction;
@@ -466,7 +469,11 @@ public class TreeFrame extends JFrame {
 		    return;
 
 		Object last = path.getLastPathComponent();
-		if (last instanceof World) {
+		if (last instanceof Region) {
+		    Region region = (Region) last;
+		    createAndShowTileCanvas(new TileCanvas.TileWorld(region));
+		    return;
+		} else if (last instanceof World) {
 		    World world = (World) last;
 		    createAndShowTileCanvas(world);
 		    return;
@@ -773,7 +780,8 @@ public class TreeFrame extends JFrame {
 	} else if (last instanceof CompoundTag) {
 	    for (Action action : actionMap.values())
 		action.setEnabled(true);
-	} else if (last instanceof World || last instanceof NBTFileBranch) {
+	} else if (last instanceof Region || last instanceof World
+		|| last instanceof NBTFileBranch) {
 	    openAction.setEnabled(true);
 	}
     }
@@ -805,6 +813,9 @@ public class TreeFrame extends JFrame {
 
 	});
 	scrollPane = new JScrollPane();
+	JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
+	int unitIncrement = 200;
+	verticalScrollBar.setUnitIncrement(unitIncrement);
 
 	GroupLayout gl_contentPane = new GroupLayout(contentPane);
 	gl_contentPane
@@ -890,7 +901,7 @@ public class TreeFrame extends JFrame {
 	JMenuBar menuBar = new JMenuBar();
 
 	JMenu menuFile = new JMenu("File");
-	Action[] fileActions = { newAction, browseAction, saveAction,
+	Action[] fileActions = { /* newAction, */browseAction, saveAction,
 	/* saveAsAction, */refreshAction, exitAction };
 	for (Action action : fileActions)
 	    menuFile.add(new JMenuItem(action));
@@ -926,13 +937,12 @@ public class TreeFrame extends JFrame {
 	JToolBar toolBar = new JToolBar();
 	toolBar.setFloatable(false);
 
-	Action[] actions = { newAction, browseAction, saveAction, /*
-								   * saveAsAction,
-								   */
-	refreshAction, null, deleteAction, null, openAction, null,
-		addByteAction, addShortAction, addIntAction, addLongAction,
-		addFloatAction, addDoubleAction, addByteArrayAction,
-		addStringAction, addListAction, addCompoundAction };
+	Action[] actions = { /* newAction, */browseAction, saveAction,
+	/* saveAsAction, */refreshAction, null, deleteAction, null, openAction,
+		null, addByteAction, addShortAction, addIntAction,
+		addLongAction, addFloatAction, addDoubleAction,
+		addByteArrayAction, addStringAction, addListAction,
+		addCompoundAction };
 	for (Action action : actions) {
 	    if (action == null) {
 		toolBar.addSeparator();
@@ -1195,7 +1205,7 @@ public class TreeFrame extends JFrame {
 
 	NBTTreeTableModel model = treeTable.getTreeTableModel();
 	final Object root = model.getRoot();
-	
+
 	SwingWorkerUnlimited.execure(new SwingWorker<Void, Void>() {
 
 	    @Override

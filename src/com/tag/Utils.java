@@ -18,8 +18,6 @@ package com.tag;
 
 import java.text.NumberFormat;
 
-import org.apache.commons.lang3.Validate;
-
 public class Utils {
 
     public static void printElapsedSeconds(long start) {
@@ -29,17 +27,6 @@ public class Utils {
 	NumberFormat format = NumberFormat.getNumberInstance();
 	String beautified = format.format(seconds);
 	System.out.println(beautified + " seconds");
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static void validate(Number value, Comparable minimum,
-	    Comparable maximum) {
-	Validate.notNull(value, "value must not be null");
-	Validate.notNull(minimum, "minimum must not be null");
-	Validate.notNull(maximum, "maximum must not be null");
-	if ((minimum.compareTo(value) > 0) || (maximum.compareTo(value) < 0))
-	    throw new IllegalArgumentException("!(" + minimum + " <= " + value
-		    + " <= " + maximum + ")");
     }
 
     // TODO: test this

@@ -41,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.Validate;
+import org.jnbt.Tag;
 
 import resources.Resource;
 
@@ -49,6 +50,9 @@ import com.nbt.data.SpriteRecord;
 import com.tag.MouseDragAndDrop;
 import com.tag.Utils;
 import com.terrain.Block;
+import com.terrain.Chunk;
+import com.terrain.Player;
+import com.terrain.Region;
 import com.terrain.World;
 
 @SuppressWarnings("serial")
@@ -82,6 +86,10 @@ public class TileCanvas extends JComponent {
     private int tileWidth = 16, tileHeight = 16;
 
     private HUD hud;
+
+    public TileCanvas(Region region) {
+	this(new TileWorld(region));
+    }
 
     public TileCanvas(final World world) {
 	Validate.notNull(world, "world must not be null");
@@ -356,8 +364,7 @@ public class TileCanvas extends JComponent {
     }
 
     public void setAltitude(int altitude) {
-	Utils.validate(altitude, Block.MIN_Y, Block.MAX_Y);
-	this.altitude = altitude;
+	this.altitude = validate(altitude, Block.MIN_Y, Block.MAX_Y - 1);
     }
 
     public int getTileWidth() {
@@ -371,8 +378,7 @@ public class TileCanvas extends JComponent {
     }
 
     public void setTileWidth(int tileWidth) {
-	Utils.validate(tileWidth, MIN_TILE_WIDTH, Integer.MAX_VALUE);
-	this.tileWidth = tileWidth;
+	this.tileWidth = validate(tileWidth, MIN_TILE_WIDTH, Integer.MAX_VALUE);
 	updateSize();
     }
 
@@ -387,8 +393,8 @@ public class TileCanvas extends JComponent {
     }
 
     public void setTileHeight(int tileHeight) {
-	Utils.validate(tileHeight, MIN_TILE_HEIGHT, Integer.MAX_VALUE);
-	this.tileHeight = tileHeight;
+	this.tileHeight = validate(tileHeight, MIN_TILE_HEIGHT,
+		Integer.MAX_VALUE);
 	updateSize();
     }
 
@@ -401,6 +407,12 @@ public class TileCanvas extends JComponent {
     public Preferences getPreferences() {
 	String name = world.getName();
 	return Preferences.userNodeForPackage(getClass()).node(name);
+    }
+
+    private static int validate(int value, int min, int max) {
+	value = Math.min(value, max);
+	value = Math.max(value, min);
+	return value;
     }
 
     private static class HUD extends JPanel {
@@ -428,6 +440,91 @@ public class TileCanvas extends JComponent {
 	    label.setForeground(Color.WHITE);
 	    label.setOpaque(false);
 	    return label;
+	}
+
+    }
+
+    public static class TileWorld implements World {
+
+	private final Region region;
+
+	public TileWorld(Region region) {
+	    Validate.notNull(region, "region must not be null");
+	    this.region = region;
+	}
+
+	@Override
+	public Tag<?> getLevel() {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public Player getPlayer(String name) {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public List<Player> getPlayers() {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public Region getRegion(int regionX, int regionZ) {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public List<Region> getRegions() {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public Region getRegionFor(int chunkX, int chunkZ) {
+	    throw new IllegalStateException("stub");
+	}
+
+	@Override
+	public Chunk getChunkFor(int x, int z) {
+	    int chunkX = divide(x, Block.MAX_X);
+	    int chunkZ = divide(z, Block.MAX_Z);
+	    try {
+		return region.getChunk(chunkX, chunkZ);
+	    } catch (Exception e) {
+		//e.printStackTrace();
+	    }
+	    return null;
+	}
+
+	private int divide(int dividend, int divisor) {
+	    int quotient = dividend / divisor;
+	    if (dividend < 0 && divisor >= 0)
+		quotient--;
+	    return quotient;
+	}
+
+	@Override
+	public Block getBlock(int x, int y, int z) {
+	    Chunk chunk = getChunkFor(x, z);
+	    if (chunk == null) {
+		// System.err.println("chunk is null!");
+		return null;
+	    }
+
+	    int localX = modulus(x, Block.MAX_X);
+	    int localZ = modulus(z, Block.MAX_Z);
+	    return chunk.getBlock(localX, y, localZ);
+	}
+
+	private int modulus(int dividend, int divisor) {
+	    int modulo = dividend % divisor;
+	    if (dividend < 0)
+		modulo--;
+	    return modulo;
+	}
+
+	@Override
+	public String getName() {
+	    return region.getName();
 	}
 
     }
