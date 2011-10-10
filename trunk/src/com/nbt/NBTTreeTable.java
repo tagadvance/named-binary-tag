@@ -57,6 +57,7 @@ import resources.Resource;
 
 import com.google.common.base.Function;
 import com.nbt.data.Register;
+import com.nbt.data.Sprite;
 import com.nbt.data.SpriteRecord;
 import com.nbt.world.NBTFileBranch;
 import com.tag.HexUtils;
@@ -132,6 +133,8 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 
 	});
 
+	final ImageFactory iconFactory = new ImageFactory();
+	final int size = 16;
 	setTreeCellRenderer(new DefaultTreeCellRenderer() {
 
 	    @Override
@@ -148,8 +151,6 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    setText(text);
 		}
 
-		final int size = 16;
-		ImageFactory iconFactory = new ImageFactory();
 		Image image = null;
 		if (value instanceof Block) {
 		    Block block = (Block) value;
@@ -160,37 +161,10 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		    SpriteRecord record = register.getRecord(id);
 		    if (record != null)
 			image = record.getImage();
-		} else if (value instanceof ByteWrapper) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_BYTE,
-			    size);
-		} else if (value instanceof ByteTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_BYTE,
-			    size);
-		} else if (value instanceof ShortTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_SHORT,
-			    size);
-		} else if (value instanceof IntTag) {
-		    image = iconFactory
-			    .createImage(NBTConstants.TYPE_INT, size);
-		} else if (value instanceof LongTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_LONG,
-			    size);
-		} else if (value instanceof FloatTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_FLOAT,
-			    size);
-		} else if (value instanceof DoubleTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_DOUBLE,
-			    size);
-		} else if (value instanceof ByteArrayTag) {
-		    image = iconFactory.createImage(
-			    NBTConstants.TYPE_BYTE_ARRAY, size);
-		} else if (value instanceof StringTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_STRING,
-			    size);
-		} else if (value instanceof ListTag) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_LIST,
-			    size);
-		} else if (value instanceof CompoundTag) {
+		} else if (value instanceof Sprite) {
+		    Sprite sprite = (Sprite) value;
+		    image = sprite.getImage();
+		} else if (value instanceof NBTFileBranch.TagWrapper) {
 		    image = iconFactory.createImage(NBTConstants.TYPE_COMPOUND,
 			    size);
 		}

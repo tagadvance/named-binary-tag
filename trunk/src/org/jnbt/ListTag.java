@@ -49,6 +49,9 @@ import com.nbt.NBTBranch;
 public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
 	Mutable<E>, NBTBranch {
 
+    public static final String TAG_NAME = "TAG_List";
+    public static final int TAG_TYPE = 9;
+
     /**
      * The type.
      */
@@ -86,6 +89,11 @@ public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
     @Override
     protected List<E> createDefaultValue() {
 	return new ArrayList<E>();
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override
@@ -150,7 +158,7 @@ public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
 
     @Override
     public String toString() {
-	StringBuilder sb = new StringBuilder("TAG_List");
+	StringBuilder sb = new StringBuilder(TAG_NAME);
 	String name = getName();
 	if (!name.isEmpty())
 	    sb.append("(\"").append(name).append("\")");

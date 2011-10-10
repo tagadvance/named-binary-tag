@@ -1,5 +1,6 @@
 package org.jnbt;
 
+
 /*
  * JNBT License
  * 
@@ -42,9 +43,15 @@ package org.jnbt;
 public class StringTag extends Tag<String> {
 
     public static final String TAG_NAME = "TAG_String";
+    public static final int TAG_TYPE = 8;
 
     public StringTag(String name, String value) {
 	super(name, value);
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

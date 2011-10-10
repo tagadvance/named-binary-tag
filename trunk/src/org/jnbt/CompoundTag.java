@@ -49,6 +49,7 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements
 	Mutable<Tag<?>>, NBTBranch, Searchable {
 
     public static final String TAG_NAME = "TAG_Compound";
+    public static final int TAG_TYPE = 10;
 
     public CompoundTag(String name) {
 	super(name, null);
@@ -61,6 +62,11 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements
     @Override
     protected Map<String, Tag<?>> createDefaultValue() {
 	return new LinkedHashMap<String, Tag<?>>();
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

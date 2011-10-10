@@ -42,6 +42,7 @@ package org.jnbt;
 public class EndTag extends Tag<Byte> {
 
     public static final String TAG_NAME = "TAG_End";
+    public static final int TAG_TYPE = 0;
 
     /**
      * Creates the tag.
@@ -58,6 +59,11 @@ public class EndTag extends Tag<Byte> {
     @Override
     public void setValue(Byte value) {
 	// do nothing
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

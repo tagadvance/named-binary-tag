@@ -42,9 +42,15 @@ package org.jnbt;
 public class FloatTag extends Tag<Float> {
 
     public static final String TAG_NAME = "TAG_Float";
+    public static final int TAG_TYPE = 5;
 
     public FloatTag(String name, float value) {
 	super(name, value);
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

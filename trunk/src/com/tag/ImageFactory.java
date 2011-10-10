@@ -41,7 +41,7 @@ public class ImageFactory {
 
     }
 
-    public Image readGeneralImage(String imageName, int size) throws IOException {
+    public BufferedImage readGeneralImage(String imageName, int size) throws IOException {
 	final String extension = ".gif";
 	String name = "/toolbarButtonGraphics/general/" + imageName + size
 		+ extension;
@@ -50,7 +50,7 @@ public class ImageFactory {
 	return ImageIO.read(location);
     }
 
-    public Image createImage(int type, int size) {
+    public BufferedImage createImage(int type, int size) {
 	switch (type) {
 	case NBTConstants.TYPE_BYTE:
 	    return createImage("B", Color.BLACK, size, size);
