@@ -29,8 +29,6 @@ import javax.swing.UIManager;
  * TODO: TileCanvas: editing tools
  * 
  * TODO: new chunk
- * TODO: menu open world viewer
- * TODO: save
  * TODO: value 2
  */
 public class Main {
