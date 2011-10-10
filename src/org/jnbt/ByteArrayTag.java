@@ -1,10 +1,12 @@
 package org.jnbt;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
 import com.tag.HexUtils;
+import com.terrain.Saveable;
 
 /*
  * JNBT License
@@ -45,10 +47,13 @@ import com.tag.HexUtils;
  * @author Taggart Spilman
  * 
  */
+// TODO: Saveable here is a hack and should be removed
 public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 
     public static final String TAG_NAME = "TAG_Byte_Array";
-
+    
+    private boolean modified;
+    
     public ByteArrayTag(String name) {
 	super(name);
     }
@@ -96,6 +101,16 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 	    return wrapper.getIndex();
 	}
 	return -1;
+    }
+    
+    @Override
+    public void mark() {
+	this.modified = false;
+    }
+
+    @Override
+    public boolean hasChanged() {
+	return this.modified;
     }
 
     @Override
@@ -158,6 +173,7 @@ public class ByteArrayTag extends Tag<byte[]> implements NBTBranch {
 		    int i = (Integer) value;
 		    byte[] bytes = getValue();
 		    bytes[index] = (byte) i;
+		    modified = true;
 		}
 	    }
 	}

@@ -1,6 +1,10 @@
 package org.jnbt;
 
+import java.io.IOException;
+
+import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
+import com.terrain.Saveable;
 
 /*
  * JNBT License
@@ -41,8 +45,8 @@ import com.nbt.NBTNode;
  * @author Taggart Spilman
  * 
  */
-// TODO: decouple NBTNode
-public abstract class Tag<T> implements NBTNode {
+// TODO: decouple NBTNode & Saveable
+public abstract class Tag<T> implements NBTNode, Saveable {
 
     /**
      * The name of this tag.
@@ -50,9 +54,7 @@ public abstract class Tag<T> implements NBTNode {
     private String name;
     private T value;
 
-    public Tag() {
-
-    }
+    private int hashCode;
 
     /**
      * Creates the tag with the specified name.
@@ -75,6 +77,7 @@ public abstract class Tag<T> implements NBTNode {
     public Tag(String name, T value) {
 	setName(name);
 	setValue(value);
+	mark();
     }
 
     /**
@@ -162,6 +165,35 @@ public abstract class Tag<T> implements NBTNode {
 	    setValue((T) value);
 	    break;
 	}
+    }
+
+    @Override
+    public void mark() {
+	this.hashCode = hashCode();
+    }
+
+    @Override
+    public boolean hasChanged() {
+	// TODO: this should go in ListTag and CompoundTag
+	// temporary until Saveable is decoupled
+	if (this instanceof NBTBranch) {
+	    NBTBranch branch = (NBTBranch) this;
+	    int count = branch.getChildCount();
+	    for (int i = 0; i < count; i++) {
+		Object child = branch.getChild(i);
+		if (child instanceof Saveable) {
+		    Saveable saveable = (Saveable) child;
+		    if (saveable.hasChanged())
+			return true;
+		}
+	    }
+	}
+	return (this.hashCode != hashCode());
+    }
+
+    @Override
+    public void save() throws IOException {
+	// do nothing
     }
 
     @Override

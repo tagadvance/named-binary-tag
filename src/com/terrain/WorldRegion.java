@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 import com.tag.Cache;
 
-public class WorldRegion extends RegionFile implements Region {
+public class WorldRegion extends RegionFile implements Region, Saveable {
 
     private final int x, z;
     private List<Chunk> chunks;
@@ -83,7 +83,8 @@ public class WorldRegion extends RegionFile implements Region {
     @Override
     public List<Chunk> getChunks() {
 	if (chunks == null) {
-	    // this must be synchronized to avoid ConcurrentModificationException
+	    // this must be synchronized to avoid
+	    // ConcurrentModificationException
 	    chunks = Collections.synchronizedList(new ArrayList<Chunk>());
 	    for (ChunkLocation cl : ChunkLocation.createList())
 		if (hasChunk(cl.getX(), cl.getZ()))
@@ -95,6 +96,34 @@ public class WorldRegion extends RegionFile implements Region {
     @Override
     public String getName() {
 	return path.getName();
+    }
+
+    @Override
+    public void mark() {
+	// do nothing
+    }
+
+    @Override
+    public boolean hasChanged() {
+	for (Chunk chunk : getChunks()) {
+	    if (chunk instanceof Saveable) {
+		Saveable saveable = (Saveable) chunk;
+		if (saveable.hasChanged())
+		    return true;
+	    }
+	}
+	return false;
+    }
+
+    @Override
+    public void save() throws IOException {
+	for (Chunk chunk : getChunks()) {
+	    if (chunk instanceof Saveable) {
+		Saveable saveable = (Saveable) chunk;
+		if (saveable.hasChanged())
+		    saveable.save();
+	    }
+	}
     }
 
     @Override

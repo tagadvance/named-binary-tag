@@ -64,4 +64,19 @@ public class NBTWorld extends WorldDirectory implements NBTBranch {
 	return branch.getIndexOfChild(child);
     }
 
+    @Override
+    public void mark() {
+	branch.mark();
+    }
+
+    @Override
+    public boolean hasChanged() {
+	return branch.hasChanged();
+    }
+
+    @Override
+    public void save() throws IOException {
+	branch.save();
+    }
+
 }

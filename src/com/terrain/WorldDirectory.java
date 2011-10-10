@@ -28,11 +28,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jnbt.Tag;
 
 import com.tag.Cache;
 
-public class WorldDirectory implements World {
+public class WorldDirectory implements World, Saveable {
 
     public static final String FILE_LEVEL = "level.dat";
     public static final String DIRECTORY_REGION = "region";
@@ -184,6 +185,35 @@ public class WorldDirectory implements World {
     @Override
     public String getName() {
 	return base.getName();
+    }
+
+    public void mark() {
+	// do nothing
+    }
+
+    @Override
+    public boolean hasChanged() {
+	for (Region region : getRegions()) {
+	    if (region instanceof Saveable) {
+		Saveable saveable = (Saveable) region;
+		if (saveable.hasChanged())
+		    System.out.println("world has changed");
+		return true;
+	    }
+	}
+	System.out.println("world has not changed");
+	return false;
+    }
+
+    @Override
+    public void save() throws IOException {
+	for (Region region : getRegions()) {
+	    if (region instanceof Saveable) {
+		Saveable saveable = (Saveable) region;
+		if (saveable.hasChanged())
+		    saveable.save();
+	    }
+	}
     }
 
     public String toString() {
