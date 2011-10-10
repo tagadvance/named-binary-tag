@@ -21,6 +21,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -30,6 +32,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -50,6 +53,10 @@ import com.terrain.World;
 
 @SuppressWarnings("serial")
 public class TileCanvas extends JComponent {
+
+    public static final String KEY_TILE_X = "tileX", KEY_TILE_Z = "tileZ",
+	    KEY_ALTITUDE = "altitude", KEY_WIDTH = "width",
+	    KEY_HEIGHT = "height";
 
     private static final Register<SpriteRecord> register;
     static {
@@ -81,6 +88,18 @@ public class TileCanvas extends JComponent {
 	this.world = world;
 
 	setFocusable(true);
+	addComponentListener(new ComponentAdapter() {
+	    @Override
+	    public void componentResized(ComponentEvent e) {
+		int tileWidth = calculateWidth();
+		setTileWidth(tileWidth);
+
+		int tileHeight = calculateHeight();
+		setTileHeight(tileHeight);
+
+		save();
+	    }
+	});
 	addKeyListener(new KeyAdapter() {
 	    @Override
 	    public void keyPressed(KeyEvent e) {
@@ -109,6 +128,13 @@ public class TileCanvas extends JComponent {
 
 		updateXYZ();
 		doRepaint();
+		save();
+	    }
+	});
+	addMouseMotionListener(new MouseMotionAdapter() {
+	    @Override
+	    public void mouseMoved(MouseEvent e) {
+		updateXYZ();
 	    }
 	});
 	new MouseDragAndDrop(this) {
@@ -126,8 +152,10 @@ public class TileCanvas extends JComponent {
 		MouseEvent startEvent = getStartEvent();
 		Point startPt = startEvent.getPoint();
 		Point releasePt = e.getPoint();
-		int x = tileX + (pixelsToTile(startPt.x) - pixelsToTile(releasePt.x));
-		int z = tileZ + (pixelsToTile(startPt.y) - pixelsToTile(releasePt.y));
+		int x = tileX
+			+ (pixelsToTile(startPt.x) - pixelsToTile(releasePt.x));
+		int z = tileZ
+			+ (pixelsToTile(startPt.y) - pixelsToTile(releasePt.y));
 		setTileX(x);
 		setTileZ(z);
 
@@ -146,6 +174,8 @@ public class TileCanvas extends JComponent {
 		//
 		// updateXYZ();
 		// doRepaint();
+
+		save();
 	    }
 
 	}.install();
@@ -155,13 +185,6 @@ public class TileCanvas extends JComponent {
 	int width = 200, height = 200;
 	hud.setSize(width, height);
 	add(hud);
-
-	addMouseMotionListener(new MouseMotionAdapter() {
-	    @Override
-	    public void mouseMoved(MouseEvent e) {
-		updateXYZ();
-	    }
-	});
     }
 
     private void updateXYZ() {
@@ -173,8 +196,38 @@ public class TileCanvas extends JComponent {
 	int z = getTileZ() + pixelsToTile(pt.y);
 	hud.xl.setText("X: " + x);
 	hud.zl.setText("Z: " + z);
-
 	hud.al.setText("Y: " + getAltitude());
+    }
+
+    public void save() {
+	Preferences prefs = getPreferences();
+	prefs.putInt(KEY_TILE_X, getTileX());
+	prefs.putInt(KEY_TILE_Z, getTileZ());
+	prefs.putInt(KEY_ALTITUDE, getAltitude());
+	prefs.putInt(KEY_WIDTH, getTileWidth());
+	prefs.putInt(KEY_HEIGHT, getTileHeight());
+    }
+
+    public void restore() {
+	Preferences prefs = getPreferences();
+
+	int def = 0;
+	int x = prefs.getInt(KEY_TILE_X, def);
+	setTileX(x);
+
+	int z = prefs.getInt(KEY_TILE_Z, def);
+	setTileZ(z);
+
+	def = 70;
+	int altitude = prefs.getInt(KEY_ALTITUDE, def);
+	setAltitude(altitude);
+
+	def = 16;
+	int width = prefs.getInt(KEY_WIDTH, def);
+	setTileWidth(width);
+
+	int height = prefs.getInt(KEY_HEIGHT, def);
+	setTileHeight(height);
     }
 
     @Override
@@ -236,8 +289,8 @@ public class TileCanvas extends JComponent {
 	}
 
 	updateXYZ();
-
 	doRepaint();
+	save();
     }
 
     public void doRepaint() {
@@ -308,9 +361,13 @@ public class TileCanvas extends JComponent {
     }
 
     public int getTileWidth() {
-	int width = getWidth();
-	int tileWidth = (width / SPRITE_SIZE) + 1;
+	int tileWidth = calculateWidth();
 	return Math.max(this.tileWidth, tileWidth);
+    }
+
+    private int calculateWidth() {
+	int width = getWidth();
+	return (width / SPRITE_SIZE) + 1;
     }
 
     public void setTileWidth(int tileWidth) {
@@ -320,9 +377,13 @@ public class TileCanvas extends JComponent {
     }
 
     public int getTileHeight() {
-	int height = getHeight();
-	int tileHeight = (height / SPRITE_SIZE) + 1;
+	int tileHeight = calculateHeight();
 	return Math.max(this.tileHeight, tileHeight);
+    }
+
+    private int calculateHeight() {
+	int height = getHeight();
+	return (height / SPRITE_SIZE) + 1;
     }
 
     public void setTileHeight(int tileHeight) {
@@ -335,6 +396,11 @@ public class TileCanvas extends JComponent {
 	int width = getTileWidth() * SPRITE_SIZE;
 	int height = getTileHeight() * SPRITE_SIZE;
 	super.setPreferredSize(new Dimension(width, height));
+    }
+
+    public Preferences getPreferences() {
+	String name = world.getName();
+	return Preferences.userNodeForPackage(getClass()).node(name);
     }
 
     private static class HUD extends JPanel {

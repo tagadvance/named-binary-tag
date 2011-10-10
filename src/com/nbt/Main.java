@@ -17,7 +17,6 @@
 package com.nbt;
 
 import java.awt.EventQueue;
-import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 
 import javax.swing.JOptionPane;
@@ -37,18 +36,12 @@ import javax.swing.UIManager;
 public class Main {
 
     public static void main(final String[] args) {
-	setPreferredLookAndFeel();
+	// setPreferredLookAndFeel();
 	EventQueue.invokeLater(new Runnable() {
 
 	    public void run() {
 		TreeFrame gui = new TreeFrame();
 		gui.setVisible(true);
-
-		if (args.length > 0) {
-		    File file = new File(args[0]);
-		    if (file.canRead())
-			gui.doImport(file);
-		}
 	    }
 
 	});
@@ -57,7 +50,7 @@ public class Main {
 	    @Override
 	    public void uncaughtException(Thread t, Throwable e) {
 		e.printStackTrace();
-		
+
 		String message = e.getMessage();
 		String title = "Error";
 		JOptionPane.showMessageDialog(null, message, title,
@@ -65,11 +58,10 @@ public class Main {
 	    }
 	});
     }
-    
+
     private static void setPreferredLookAndFeel() {
-	String[] lafs = {
-		//"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
-		//UIManager.getSystemLookAndFeelClassName(),
+	String[] lafs = { "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel",
+		UIManager.getSystemLookAndFeelClassName(),
 		UIManager.getCrossPlatformLookAndFeelClassName() };
 	for (String laf : lafs) {
 	    try {

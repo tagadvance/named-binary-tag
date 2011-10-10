@@ -22,6 +22,7 @@ import java.io.IOError;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
@@ -30,6 +31,7 @@ import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
 import com.tag.Cache;
 import com.terrain.Region;
+import com.terrain.WorldDirectory;
 
 public class NBTFileBranch implements NBTNode, NBTBranch {
 
@@ -39,7 +41,7 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
     private Cache<String, File> fileCache;
     private Cache<File, CompoundTag> tagCache;
     private Cache<File, Region> regionCache;
-    private Cache<File, NBTFileBranch> branchCache;
+    private Cache<File, NBTBranch> branchCache;
 
     public NBTFileBranch(final File file) {
 	this(null, file);
@@ -110,10 +112,13 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
 	};
     }
 
-    protected Cache<File, NBTFileBranch> createBranchCache() {
-	return new Cache<File, NBTFileBranch>() {
+    protected Cache<File, NBTBranch> createBranchCache() {
+	return new Cache<File, NBTBranch>() {
 	    @Override
-	    public NBTFileBranch apply(File key) {
+	    public NBTBranch apply(File key) {
+		String[] names = key.list();
+		if (ArrayUtils.contains(names, WorldDirectory.DIRECTORY_REGION))
+		    return new NBTWorld(key);
 		return new NBTFileBranch(NBTFileBranch.this, key);
 	    }
 	};
@@ -201,6 +206,10 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
 	    File dest = fileCache.get(name);
 	    file.renameTo(dest);
 	}
+    }
+
+    public String toString() {
+	return file.getName();
     }
 
     @Override

@@ -36,14 +36,14 @@ abstract class NBTAction extends AbstractAction {
 
 	ImageFactory factory = new ImageFactory();
 	try {
-	    Image image = factory.readImage(imageName, smallIconSize);
+	    Image image = factory.readGeneralImage(imageName, smallIconSize);
 	    setSmallIcon(image);
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
 
 	try {
-	    Image image = factory.readImage(imageName, largeIconSize);
+	    Image image = factory.readGeneralImage(imageName, largeIconSize);
 	    setLargeIcon(image);
 	} catch (IOException e) {
 	    e.printStackTrace();
