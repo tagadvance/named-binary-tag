@@ -42,9 +42,15 @@ package org.jnbt;
 public class IntTag extends Tag<Integer> {
 
     public static final String TAG_NAME = "TAG_Int";
+    public static final int TAG_TYPE = 3;
 
     public IntTag(String name, int value) {
 	super(name, value);
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

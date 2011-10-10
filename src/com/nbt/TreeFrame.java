@@ -415,6 +415,9 @@ public class TreeFrame extends JFrame {
 			index = wrapper.getIndex();
 		    }
 		    mutable.remove(index);
+		} else {
+		    System.err.println(last.getClass());
+		    return;
 		}
 
 		updateTreeTable();

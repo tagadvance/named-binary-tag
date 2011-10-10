@@ -42,9 +42,15 @@ package org.jnbt;
 public class ShortTag extends Tag<Short> {
 
     public static final String TAG_NAME = "TAG_Short";
+    public static final int TAG_TYPE = 2;
 
     public ShortTag(String name, short value) {
 	super(name, value);
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override

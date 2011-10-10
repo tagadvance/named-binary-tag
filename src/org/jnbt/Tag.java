@@ -1,9 +1,12 @@
 package org.jnbt;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
+import com.nbt.data.Sprite;
+import com.tag.ImageFactory;
 import com.terrain.Saveable;
 
 /*
@@ -46,7 +49,13 @@ import com.terrain.Saveable;
  * 
  */
 // TODO: decouple NBTNode & Saveable
-public abstract class Tag<T> implements NBTNode, Saveable {
+public abstract class Tag<T> implements NBTNode, Saveable, Sprite {
+
+    protected static ImageFactory imageFactory;
+    static {
+	imageFactory = new ImageFactory();
+    }
+    protected static final int SIZE = 16;
 
     /**
      * The name of this tag.
@@ -190,12 +199,20 @@ public abstract class Tag<T> implements NBTNode, Saveable {
 	}
 	return (this.hashCode != hashCode());
     }
-
+    
     @Override
     public void save() throws IOException {
 	// do nothing
     }
-
+    
+    @Override
+    public BufferedImage getImage() {
+	int type = getTagType();
+	return imageFactory.createImage(type, SIZE);
+    }
+    
+    public abstract int getTagType();
+    
     @Override
     public int hashCode() {
 	final int prime = 31;

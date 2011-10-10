@@ -1,6 +1,5 @@
 package org.jnbt;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +9,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
 import com.tag.HexUtils;
-import com.terrain.Saveable;
 
 /*
  * JNBT License
@@ -56,6 +54,7 @@ public class ByteArrayTag extends Tag<byte[]> implements Mutable<Byte>,
 	NBTBranch {
 
     public static final String TAG_NAME = "TAG_Byte_Array";
+    public static final int TAG_TYPE = 7;
 
     private boolean modified;
 
@@ -70,6 +69,11 @@ public class ByteArrayTag extends Tag<byte[]> implements Mutable<Byte>,
     @Override
     protected byte[] createDefaultValue() {
 	return new byte[] {};
+    }
+
+    @Override
+    public int getTagType() {
+	return TAG_TYPE;
     }
 
     @Override
