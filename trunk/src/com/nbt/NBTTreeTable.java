@@ -55,6 +55,7 @@ import org.jnbt.StringTag;
 
 import resources.Resource;
 
+import com.google.common.base.Function;
 import com.nbt.data.Register;
 import com.nbt.data.SpriteRecord;
 import com.nbt.world.NBTFileBranch;
@@ -69,8 +70,7 @@ import com.terrain.Block;
  * 
  */
 @SuppressWarnings("serial")
-public class NBTTreeTable extends JXTreeTable implements
-	TreeWillExpandListener {
+public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener {
 
     static final Register<SpriteRecord> register;
     static {
@@ -280,7 +280,7 @@ public class NBTTreeTable extends JXTreeTable implements
      * seems unnecessary to create the pathByAddingChild before actually
      * checking the child.
      */
-    private TreePath getPathForNode(TreePath path, Object searchNode) {
+    private TreePath getPathForNode(TreePath path, final Object searchNode) {
 	Object node = path.getLastPathComponent();
 	if (node == searchNode) {
 	    return path;
@@ -302,6 +302,30 @@ public class NBTTreeTable extends JXTreeTable implements
 		return result;
 	}
 	return null;
+    }
+
+    /**
+     * function should return <code>true</code> if its children should be
+     * iterated over
+     */
+    public void iterate(Function<TreePath, Boolean> function) {
+	NBTTreeTableModel model = getTreeTableModel();
+	Object root = model.getRoot();
+	TreePath path = new TreePath(root);
+	iterate(path, function);
+    }
+
+    public boolean iterate(TreePath path,
+	    final Function<TreePath, Boolean> function) {
+	Object node = path.getLastPathComponent();
+	NBTTreeTableModel treeTableModel = getTreeTableModel();
+	for (int i = 0; i < treeTableModel.getChildCount(node); i++) {
+	    Object next = treeTableModel.getChild(node, i);
+	    TreePath childPath = path.pathByAddingChild(next);
+	    if (function.apply(childPath))
+		iterate(childPath, function);
+	}
+	return false;
     }
 
 }

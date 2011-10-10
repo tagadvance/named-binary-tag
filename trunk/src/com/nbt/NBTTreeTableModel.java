@@ -149,6 +149,8 @@ public class NBTTreeTableModel extends AbstractTreeTableModel {
 	for (int i = 0; i < length; i++) {
 	    Object child = children[i];
 	    childIndices[i] = getIndexOfChild(parent, child);
+	    if (childIndices[i] == -1)
+		throw new IllegalArgumentException("child index is -1");
 	}
 	fireTreeNodesInserted(source, path, childIndices, children);
     }

@@ -47,7 +47,7 @@ import com.nbt.NBTBranch;
  * 
  */
 public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
-	NBTBranch {
+	Mutable<E>, NBTBranch {
 
     /**
      * The type.
@@ -86,6 +86,24 @@ public class ListTag<E extends Tag<?>> extends Tag<List<E>> implements
     @Override
     protected List<E> createDefaultValue() {
 	return new ArrayList<E>();
+    }
+
+    @Override
+    public void add(E value) {
+	List list = (List) getValue();
+	list.add(value);
+    }
+
+    @Override
+    public void add(int index, E value) {
+	List list = (List) getValue();
+	list.add(index, value);
+    }
+
+    @Override
+    public void remove(int index) {
+	List<? extends Tag<?>> list = getValue();
+	list.remove(index);
     }
 
     @Override

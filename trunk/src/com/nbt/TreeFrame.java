@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,7 @@ import org.jnbt.FloatTag;
 import org.jnbt.IntTag;
 import org.jnbt.ListTag;
 import org.jnbt.LongTag;
+import org.jnbt.Mutable;
 import org.jnbt.NBTConstants;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTUtils;
@@ -93,6 +95,7 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
+import com.google.common.base.Function;
 import com.nbt.data.SpriteRecord;
 import com.nbt.world.NBTChunk;
 import com.nbt.world.NBTFileBranch;
@@ -405,39 +408,19 @@ public class TreeFrame extends JFrame {
 		Object parentLast = parentPath.getLastPathComponent();
 		NBTTreeTableModel model = treeTable.getTreeTableModel();
 		int index = model.getIndexOfChild(parentLast, last);
-		if (parentLast instanceof ByteArrayTag) {
-		    ByteArrayTag baTag = (ByteArrayTag) parentLast;
-		    byte[] value = baTag.getValue();
-		    Byte[] bytes = ArrayUtils.toObject(value);
-		    List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
-		    index = (Integer) last;
-		    list.remove(index);
-		    bytes = new Byte[list.size()];
-		    list.toArray(bytes);
-		    value = ArrayUtils.toPrimitive(bytes);
-		    baTag.setValue(value);
-		} else if (parentLast instanceof ListTag) {
-		    ListTag<? extends Tag<?>> listTag = (ListTag) parentLast;
-		    List<? extends Tag<?>> list = listTag.getValue();
-		    if (index != -1)
-			list.remove(index);
-		} else if (parentLast instanceof CompoundTag) {
-		    CompoundTag compoundTag = (CompoundTag) parentLast;
-		    Map<String, Tag<?>> map = compoundTag.getValue();
-		    int i = 0;
-		    for (String key : map.keySet()) {
-			if (i++ == index - 1) {
-			    map.remove(key);
-			    break;
-			}
+		if (parentLast instanceof Mutable<?>) {
+		    Mutable<?> mutable = (Mutable<?>) parentLast;
+		    if (last instanceof ByteWrapper) {
+			ByteWrapper wrapper = (ByteWrapper) last;
+			index = wrapper.getIndex();
 		    }
+		    mutable.remove(index);
 		}
 
 		updateTreeTable();
-
-		path = treeTable.getPathForRow(row);
-		if (path != null)
-		    treeTable.setRowSelectionInterval(row, row);
+		treeTable.expandPath(parentPath);
+		scrollTo(parentLast);
+		treeTable.setRowSelectionInterval(row, row);
 	    }
 
 	};
@@ -767,17 +750,22 @@ public class TreeFrame extends JFrame {
 	    return;
 	TreePath path = treeTable.getPathForRow(row);
 	Object last = path.getLastPathComponent();
+	TreePath parentPath = path.getParentPath();
+	Object parentLast = parentPath.getLastPathComponent();
 
-	if (last instanceof ByteArrayTag || last instanceof ByteWrapper) {
+	if (last instanceof ByteArrayTag || parentLast instanceof ByteArrayTag
+		|| last instanceof ByteWrapper
+		|| parentLast instanceof ByteWrapper) {
 	    addByteAction.setEnabled(true);
-	} else if (last instanceof ListTag) {
+	} else if (last instanceof ListTag || parentLast instanceof ListTag) {
 	    ListTag list = (ListTag) last;
 	    @SuppressWarnings("unchecked")
 	    Class<Tag<?>> c = (Class<Tag<?>>) list.getType();
 	    int type = NBTUtils.getTypeCode(c);
 	    Action action = actionMap.get(type);
 	    action.setEnabled(true);
-	} else if (last instanceof CompoundTag) {
+	} else if (last instanceof CompoundTag
+		|| parentLast instanceof CompoundTag) {
 	    for (Action action : actionMap.values())
 		action.setEnabled(true);
 	} else if (last instanceof Region || last instanceof World
@@ -1247,50 +1235,43 @@ public class TreeFrame extends JFrame {
 
 	Object scroll = tag;
 
-	int row = treeTable.getSelectedRow();
-	TreePath path = treeTable.getPathForRow(row);
+	TreePath path = treeTable.getPath();
 	Object last = path.getLastPathComponent();
-	if (last instanceof ByteArrayTag) {
-	    ByteArrayTag baTag = (ByteArrayTag) last;
-	    byte[] value = baTag.getValue();
-	    byte[] newValue = new byte[value.length + 1];
-	    System.arraycopy(value, 0, newValue, 0, value.length);
-	    baTag.setValue(newValue);
-	} else if (last instanceof Integer) {
-	    int index = (Integer) last + 1;
-	    TreePath parentPath = path.getParentPath();
-	    Object parentLast = parentPath.getLastPathComponent();
-	    if (parentLast instanceof ByteArrayTag) {
-		ByteArrayTag baTag = (ByteArrayTag) parentLast;
-		byte[] value = baTag.getValue();
-		Byte[] bytes = ArrayUtils.toObject(value);
-		List<Byte> list = new ArrayList<Byte>(Arrays.asList(bytes));
-		list.add(index, (byte) 0);
-		bytes = list.toArray(bytes);
-		value = ArrayUtils.toPrimitive(bytes);
-		baTag.setValue(value);
-		scroll = index;
-	    }
-	} else if (last instanceof ListTag) {
-	    ListTag listTag = (ListTag) last;
-	    List list = (List) listTag.getValue();
-	    list.add(tag);
-	} else if (last instanceof CompoundTag) {
-	    CompoundTag compoundTag = (CompoundTag) last;
-	    Map<String, Tag<?>> list = compoundTag.getValue();
-	    list.put(tag.getName(), tag);
-	} else {
-	    return;
+	TreePath parentPath = path.getParentPath();
+	Object parentLast = parentPath.getLastPathComponent();
+	if (!(last instanceof Mutable) && parentLast instanceof Mutable) {
+	    path = parentPath;
+	    last = parentLast;
 	}
+	if (last instanceof Mutable) {
+	    Mutable mutable = (Mutable) last;
+	    if (last instanceof ByteArrayTag) {
+		mutable.add(null);
+	    } else if (last instanceof ByteWrapper) {
+		ByteWrapper wrapper = (ByteWrapper) last;
+		int index = wrapper.getIndex() + 1;
+		mutable.add(index, null);
+		scroll = index;
+	    } else if (last instanceof ListTag) {
+		mutable.add(tag);
+	    } else if (last instanceof CompoundTag) {
+		mutable.add(tag);
+	    } else {
+		return;
+	    }
+	    nodesInserted(last, path);
+	}
+
+	scrollTo(scroll);
+    }
+
+    private void nodesInserted(Object source, TreePath path) {
+	// TODO: broken; causes of behavior
+	// NBTTreeTableModel model = treeTable.getTreeTableModel();
+	// model.fireTreeNodesInserted(source, path);
 
 	updateTreeTable();
-
-	path = treeTable.getPathForNode(scroll);
-	row = treeTable.getRowForPath(path);
-	if (row != -1) {
-	    treeTable.setRowSelectionInterval(row, row);
-	    treeTable.scrollPathToVisible(path);
-	}
+	treeTable.expandPath(path);
     }
 
     protected void updateTreeTable() {
@@ -1319,10 +1300,17 @@ public class TreeFrame extends JFrame {
 		    tileCanvas.doRepaint();
 	    }
 	});
-
 	scrollPane.setViewportView(treeTable);
-
 	updateActions();
+    }
+
+    protected void scrollTo(Object node) {
+	TreePath path = treeTable.getPathForNode(node);
+	int row = treeTable.getRowForPath(path);
+	if (row != -1) {
+	    treeTable.setRowSelectionInterval(row, row);
+	    treeTable.scrollPathToVisible(path);
+	}
     }
 
     public void showErrorDialog(String message) {
