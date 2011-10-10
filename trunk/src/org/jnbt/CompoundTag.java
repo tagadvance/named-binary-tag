@@ -51,6 +51,10 @@ public class CompoundTag extends Tag<Map<String, Tag<?>>> implements
     public static final String TAG_NAME = "TAG_Compound";
     public static final int TAG_TYPE = 10;
 
+    public CompoundTag() {
+	super(TAG_NAME, null);
+    }
+
     public CompoundTag(String name) {
 	super(name, null);
     }

@@ -40,18 +40,7 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 
 import org.jdesktop.swingx.JXTreeTable;
-import org.jnbt.ByteArrayTag;
-import org.jnbt.ByteArrayTag.ByteWrapper;
-import org.jnbt.ByteTag;
-import org.jnbt.CompoundTag;
-import org.jnbt.DoubleTag;
-import org.jnbt.FloatTag;
-import org.jnbt.IntTag;
-import org.jnbt.ListTag;
-import org.jnbt.LongTag;
 import org.jnbt.NBTConstants;
-import org.jnbt.ShortTag;
-import org.jnbt.StringTag;
 
 import resources.Resource;
 
