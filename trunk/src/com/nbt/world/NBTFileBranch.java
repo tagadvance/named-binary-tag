@@ -18,28 +18,32 @@ package com.nbt.world;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
 
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
 import com.tag.Cache;
 import com.terrain.Region;
+import com.terrain.Saveable;
 import com.terrain.WorldDirectory;
 
-public class NBTFileBranch implements NBTNode, NBTBranch {
+public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 
     private final NBTFileBranch parent;
     private final File file;
 
     private Cache<String, File> fileCache;
-    private Cache<File, CompoundTag> tagCache;
+    private Cache<File, TagWrapper> tagCache;
     private Cache<File, Region> regionCache;
     private Cache<File, NBTBranch> branchCache;
 
@@ -80,20 +84,11 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
 	};
     }
 
-    protected Cache<File, CompoundTag> createTagCache() {
-	return new Cache<File, CompoundTag>() {
+    protected Cache<File, TagWrapper> createTagCache() {
+	return new Cache<File, TagWrapper>() {
 	    @Override
-	    public CompoundTag apply(File key) {
-		NBTInputStream ns = null;
-		try {
-		    ns = new NBTInputStream(new FileInputStream(key));
-		    return (CompoundTag) ns.readTag();
-		} catch (IOException e) {
-		    // TODO: don't be lazy
-		    throw new IOError(e);
-		} finally {
-		    IOUtils.closeQuietly(ns);
-		}
+	    public TagWrapper apply(File key) {
+		return new TagWrapper(key);
 	    }
 	};
     }
@@ -208,6 +203,38 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
 	}
     }
 
+    @Override
+    public void mark() {
+	// do nothing
+    }
+
+    @Override
+    public boolean hasChanged() {
+	int count = getChildCount();
+	for (int i = 0; i < count; i++) {
+	    Object child = getChild(i);
+	    if (child instanceof Saveable) {
+		Saveable saveable = (Saveable) child;
+		if (saveable.hasChanged())
+		    return true;
+	    }
+	}
+	return false;
+    }
+
+    @Override
+    public void save() throws IOException {
+	int count = getChildCount();
+	for (int i = 0; i < count; i++) {
+	    Object child = getChild(i);
+	    if (child instanceof Saveable) {
+		Saveable saveable = (Saveable) child;
+		if (saveable.hasChanged())
+		    saveable.save();
+	    }
+	}
+    }
+
     public String toString() {
 	return file.getName();
     }
@@ -235,6 +262,103 @@ public class NBTFileBranch implements NBTNode, NBTBranch {
 	} else if (!file.equals(other.file))
 	    return false;
 	return true;
+    }
+
+    private class TagWrapper implements NBTNode, NBTBranch, Saveable {
+
+	private final File file;
+	private CompoundTag tag;
+	private int hashCode;
+
+	public TagWrapper(File file) {
+	    Validate.notNull(file, "file must not be null");
+	    this.file = file;
+
+	    // TODO: move this somewhere else
+	    NBTInputStream is = null;
+	    try {
+		is = new NBTInputStream(new FileInputStream(file));
+		this.tag = (CompoundTag) is.readTag();
+	    } catch (IOException e) {
+		// TODO: don't be lazy
+		throw new IOError(e);
+	    } finally {
+		IOUtils.closeQuietly(is);
+	    }
+	    mark();
+	}
+
+	@Override
+	public boolean isCellEditable(int column) {
+	    return tag.isCellEditable(column);
+	}
+
+	@Override
+	public Object getValueAt(int column) {
+	    return tag.getValueAt(column);
+	}
+
+	@Override
+	public void setValueAt(Object value, int column) {
+	    tag.setValueAt(value, column);
+	}
+
+	@Override
+	public int getChildCount() {
+	    return tag.getChildCount();
+	}
+
+	@Override
+	public Object getChild(int index) {
+	    return tag.getChild(index);
+	}
+
+	@Override
+	public int getIndexOfChild(Object child) {
+	    return tag.getIndexOfChild(child);
+	}
+
+	@Override
+	public void mark() {
+	    this.hashCode = hashCode();
+	}
+
+	@Override
+	public boolean hasChanged() {
+	    if (this.hashCode == 0)
+		// TODO: perhaps I should throw an exception instead?
+		return false;
+	    return (this.hashCode != hashCode());
+	}
+
+	@Override
+	public void save() throws IOException {
+	    NBTOutputStream os = null;
+	    try {
+		os = new NBTOutputStream(new FileOutputStream(file));
+		os.writeTag(tag);
+	    } catch (IOException e) {
+		// TODO: don't be lazy
+		throw new IOError(e);
+	    } finally {
+		IOUtils.closeQuietly(os);
+	    }
+	    mark();
+	}
+
+	public String toString() {
+	    return "TagWrapper[" + file.getName() + "]";
+	}
+
+	@Override
+	public int hashCode() {
+	    return tag.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    return tag.equals(obj);
+	}
     }
 
 }

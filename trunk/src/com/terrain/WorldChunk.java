@@ -29,20 +29,23 @@ import org.jnbt.CompoundTag;
 import org.jnbt.IntTag;
 import org.jnbt.LongTag;
 import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 
 import com.tag.Cache;
 
 @SuppressWarnings("rawtypes")
-public class WorldChunk implements Chunk {
+public class WorldChunk implements Chunk, Saveable {
 
     private final WorldRegion region;
     private final int x, z;
     private List<Block> blocks;
 
-    protected Tag<?> chunkTag;
+    protected CompoundTag chunkTag;
 
     private final Cache<BlockLocation, Block> cache;
+
+    private int hashCode;
 
     protected WorldChunk(WorldRegion region, int x, int z) {
 	Validate.notNull(region, "region must not be null");
@@ -55,13 +58,14 @@ public class WorldChunk implements Chunk {
 	try {
 	    boolean gzip = false;
 	    is = new NBTInputStream(region.getChunkInputStream(x, z), gzip);
-	    this.chunkTag = is.readTag();
+	    this.chunkTag = (CompoundTag) is.readTag();
 	} catch (IOException e) {
 	    // TODO: don't be lazy
 	    throw new IllegalArgumentException(e);
 	} finally {
 	    IOUtils.closeQuietly(is);
 	}
+	mark();
 
 	this.cache = new Cache<BlockLocation, Block>() {
 	    @Override
@@ -119,13 +123,10 @@ public class WorldChunk implements Chunk {
 
     @Override
     public long getLastUpdate() {
-	if (chunkTag instanceof CompoundTag) {
-	    CompoundTag tag = (CompoundTag) chunkTag;
-	    Tag search = tag.search("LastUpdate");
-	    if (search instanceof LongTag) {
-		LongTag longTag = (LongTag) search;
-		return longTag.getValue();
-	    }
+	Tag search = chunkTag.search("LastUpdate");
+	if (search instanceof LongTag) {
+	    LongTag longTag = (LongTag) search;
+	    return longTag.getValue();
 	}
 	return -1;
     }
@@ -142,40 +143,31 @@ public class WorldChunk implements Chunk {
 
     @Override
     public int getXpos() {
-	if (chunkTag instanceof CompoundTag) {
-	    CompoundTag tag = (CompoundTag) chunkTag;
-	    Tag search = tag.search("xPos");
-	    if (search instanceof IntTag) {
-		IntTag intTag = (IntTag) search;
-		return intTag.getValue();
-	    }
+	Tag search = chunkTag.search("xPos");
+	if (search instanceof IntTag) {
+	    IntTag intTag = (IntTag) search;
+	    return intTag.getValue();
 	}
 	return -1;
     }
 
     @Override
     public int getZpos() {
-	if (chunkTag instanceof CompoundTag) {
-	    CompoundTag tag = (CompoundTag) chunkTag;
-	    Tag search = tag.search("zPos");
-	    if (search instanceof IntTag) {
-		IntTag intTag = (IntTag) search;
-		return intTag.getValue();
-	    }
+	Tag search = chunkTag.search("zPos");
+	if (search instanceof IntTag) {
+	    IntTag intTag = (IntTag) search;
+	    return intTag.getValue();
 	}
 	return -1;
     }
 
     @Override
     public boolean isTerrainPopulated() {
-	if (chunkTag instanceof CompoundTag) {
-	    CompoundTag tag = (CompoundTag) chunkTag;
-	    Tag search = tag.search("TerrainPopulated");
-	    if (search instanceof ByteTag) {
-		ByteTag byteTag = (ByteTag) search;
-		byte b = byteTag.getValue();
-		return b != 0;
-	    }
+	Tag search = chunkTag.search("TerrainPopulated");
+	if (search instanceof ByteTag) {
+	    ByteTag byteTag = (ByteTag) search;
+	    byte b = byteTag.getValue();
+	    return b != 0;
 	}
 	return false;
     }
@@ -186,6 +178,42 @@ public class WorldChunk implements Chunk {
 	Formatter formatter = new Formatter(sb, Locale.US);
 	formatter.format("Chunk [x=%1s, z=%1s]", getLocalX(), getLocalZ());
 	return sb.toString();
+    }
+
+    @Override
+    public void mark() {
+	this.hashCode = hashCode();
+    }
+
+    @Override
+    public boolean hasChanged() {
+	if (this.hashCode == 0)
+	    // TODO: perhaps I should throw an exception instead?
+	    return false;
+
+	if (chunkTag.hasChanged())
+	    return true;
+
+	return (this.hashCode != hashCode());
+    }
+
+    @Override
+    public void save() throws IOException {
+	Region region = getRegion();
+	if (region instanceof WorldRegion) {
+	    WorldRegion worldRegion = (WorldRegion) region;
+	    int x = getLocalX(), z = getLocalZ();
+	    NBTOutputStream out = null;
+	    try {
+		boolean gzip = false;
+		out = new NBTOutputStream(
+			worldRegion.getChunkOutputStream(x, z), gzip);
+		out.writeTag(chunkTag);
+	    } finally {
+		IOUtils.closeQuietly(out);
+	    }
+	}
+	mark();
     }
 
     @Override

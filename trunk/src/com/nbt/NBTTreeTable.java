@@ -238,7 +238,6 @@ public class NBTTreeTable extends JXTreeTable implements
 
 	    @Override
 	    protected Void doInBackground() throws Exception {
-		System.out.println(lazyBranch);
 		lazyBranch.getChildren();
 		return null;
 	    }

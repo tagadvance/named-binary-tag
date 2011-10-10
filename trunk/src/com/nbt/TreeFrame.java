@@ -28,7 +28,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +87,6 @@ import org.jnbt.ListTag;
 import org.jnbt.LongTag;
 import org.jnbt.NBTConstants;
 import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.jnbt.NBTUtils;
 import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
@@ -106,6 +104,7 @@ import com.tag.SwingWorkerUnlimited;
 import com.tag.Thumbnail;
 import com.terrain.Block;
 import com.terrain.Region;
+import com.terrain.Saveable;
 import com.terrain.World;
 import com.terrain.WorldBlock;
 import com.terrain.WorldDirectory;
@@ -892,7 +891,7 @@ public class TreeFrame extends JFrame {
 
 	JMenu menuFile = new JMenu("File");
 	Action[] fileActions = { newAction, browseAction, saveAction,
-		saveAsAction, refreshAction, exitAction };
+	/* saveAsAction, */refreshAction, exitAction };
 	for (Action action : fileActions)
 	    menuFile.add(new JMenuItem(action));
 	menuBar.add(menuFile);
@@ -927,8 +926,10 @@ public class TreeFrame extends JFrame {
 	JToolBar toolBar = new JToolBar();
 	toolBar.setFloatable(false);
 
-	Action[] actions = { newAction, browseAction, saveAction, saveAsAction,
-		refreshAction, null, deleteAction, null, openAction, null,
+	Action[] actions = { newAction, browseAction, saveAction, /*
+								   * saveAsAction,
+								   */
+	refreshAction, null, deleteAction, null, openAction, null,
 		addByteAction, addShortAction, addIntAction, addLongAction,
 		addFloatAction, addDoubleAction, addByteArrayAction,
 		addStringAction, addListAction, addCompoundAction };
@@ -1187,12 +1188,6 @@ public class TreeFrame extends JFrame {
     }
 
     public void doExport(final File file) {
-	if (true) {
-	    // TODO: fix this
-	    showErrorDialog("export temporarily disabled");
-	    return;
-	}
-
 	textFile.setText(file.getAbsolutePath());
 
 	Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
@@ -1200,17 +1195,15 @@ public class TreeFrame extends JFrame {
 
 	NBTTreeTableModel model = treeTable.getTreeTableModel();
 	final Object root = model.getRoot();
-
+	
 	SwingWorkerUnlimited.execure(new SwingWorker<Void, Void>() {
 
 	    @Override
 	    protected Void doInBackground() throws Exception {
-		NBTOutputStream ns = null;
-		try {
-		    ns = new NBTOutputStream(new FileOutputStream(file));
-		    // ns.writeTag(root);
-		} finally {
-		    IOUtils.closeQuietly(ns);
+		if (root instanceof Saveable) {
+		    Saveable saveable = (Saveable) root;
+		    if (saveable.hasChanged())
+			saveable.save();
 		}
 		return null;
 	    }

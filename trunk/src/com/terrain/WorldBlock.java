@@ -26,6 +26,7 @@ import org.jnbt.Tag;
 
 import com.tag.Utils;
 
+// TODO: implement Saveable
 public class WorldBlock implements Block {
 
     private final WorldChunk chunk;
@@ -71,12 +72,12 @@ public class WorldBlock implements Block {
 
     @Override
     public int getAbsoluteX() {
-	return -1;
+	throw new IllegalStateException("stub");
     }
 
     @Override
     public int getAbsoluteZ() {
-	return -1;
+	throw new IllegalStateException("stub");
     }
 
     @Override
@@ -155,7 +156,7 @@ public class WorldBlock implements Block {
 		getLocalZ(), getAltitude());
 	return sb.toString();
     }
-
+    
     @Override
     public String toString() {
 	return getName();
