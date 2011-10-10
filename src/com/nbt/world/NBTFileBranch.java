@@ -26,8 +26,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.jnbt.CompoundTag;
+import org.jnbt.Mutable;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
+import org.jnbt.Tag;
 
 import com.nbt.NBTBranch;
 import com.nbt.NBTNode;
@@ -35,8 +37,8 @@ import com.tag.Cache;
 import com.terrain.Region;
 import com.terrain.Saveable;
 import com.terrain.SessionLock;
-import com.terrain.WorldDirectory;
 import com.terrain.SessionLock.YieldEvent;
+import com.terrain.WorldDirectory;
 
 public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 
@@ -279,7 +281,8 @@ public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 	return true;
     }
 
-    public static class TagWrapper implements NBTNode, NBTBranch, Saveable {
+    public static class TagWrapper implements Mutable<Tag<?>>, NBTNode,
+	    NBTBranch, Saveable {
 
 	private final File file;
 	private CompoundTag tag;
@@ -301,6 +304,21 @@ public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 		IOUtils.closeQuietly(is);
 	    }
 	    mark();
+	}
+
+	@Override
+	public void add(Tag<?> value) {
+	    tag.add(value);
+	}
+
+	@Override
+	public void add(int index, Tag<?> value) {
+	    tag.add(index, value);
+	}
+
+	@Override
+	public void remove(int index) {
+	    tag.remove(index);
 	}
 
 	@Override
@@ -372,8 +390,13 @@ public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 
 	@Override
 	public boolean equals(Object obj) {
-	    return tag.equals(obj);
+	    if (obj instanceof TagWrapper) {
+		TagWrapper other = (TagWrapper) obj;
+		return tag.equals(other.tag);
+	    }
+	    return false;
 	}
+
     }
 
 }

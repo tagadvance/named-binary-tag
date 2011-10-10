@@ -29,11 +29,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.prefs.Preferences;
@@ -95,10 +91,10 @@ import org.jnbt.ShortTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
-import com.google.common.base.Function;
 import com.nbt.data.SpriteRecord;
 import com.nbt.world.NBTChunk;
 import com.nbt.world.NBTFileBranch;
+import com.nbt.world.NBTFileBranch.TagWrapper;
 import com.nbt.world.NBTRegion;
 import com.nbt.world.NBTWorld;
 import com.tag.FramePreferences;
@@ -672,7 +668,7 @@ public class TreeFrame extends JFrame {
 	    }
 
 	    public void actionPerformed(ActionEvent e) {
-
+		addTag(new CompoundTag());
 	    }
 
 	};
@@ -772,7 +768,9 @@ public class TreeFrame extends JFrame {
 	    Action action = actionMap.get(type);
 	    action.setEnabled(true);
 	} else if (last instanceof CompoundTag
-		|| parentLast instanceof CompoundTag) {
+		|| parentLast instanceof CompoundTag
+		|| last instanceof TagWrapper
+		|| parentLast instanceof TagWrapper) {
 	    for (Action action : actionMap.values())
 		action.setEnabled(true);
 	} else if (last instanceof Region || last instanceof World
@@ -1232,24 +1230,25 @@ public class TreeFrame extends JFrame {
 
 	});
     }
-
-    // TODO: refactor this
+    
     public void addTag(Tag<?> tag) {
 	if (treeTable == null) {
 	    showErrorDialog("Tree is null");
 	    return;
 	}
 
-	Object scroll = tag;
-
 	TreePath path = treeTable.getPath();
+	add(tag, path);
+    }
+
+    private void add(final Tag<?> tag, TreePath path) {
 	Object last = path.getLastPathComponent();
-	TreePath parentPath = path.getParentPath();
-	Object parentLast = parentPath.getLastPathComponent();
-	if (!(last instanceof Mutable) && parentLast instanceof Mutable) {
-	    path = parentPath;
-	    last = parentLast;
+	if (!(last instanceof Mutable)) {
+	    TreePath parentPath = path.getParentPath();
+	    add(tag, parentPath);
+	    return;
 	}
+	Object scroll = tag;
 	if (last instanceof Mutable) {
 	    Mutable mutable = (Mutable) last;
 	    if (last instanceof ByteArrayTag) {
@@ -1261,14 +1260,12 @@ public class TreeFrame extends JFrame {
 		scroll = index;
 	    } else if (last instanceof ListTag) {
 		mutable.add(tag);
-	    } else if (last instanceof CompoundTag) {
+	    } else if (last instanceof CompoundTag
+		    || last instanceof TagWrapper) {
 		mutable.add(tag);
-	    } else {
-		return;
 	    }
 	    nodesInserted(last, path);
 	}
-
 	scrollTo(scroll);
     }
 
