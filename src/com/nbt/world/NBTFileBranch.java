@@ -34,7 +34,9 @@ import com.nbt.NBTNode;
 import com.tag.Cache;
 import com.terrain.Region;
 import com.terrain.Saveable;
+import com.terrain.SessionLock;
 import com.terrain.WorldDirectory;
+import com.terrain.SessionLock.YieldEvent;
 
 public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 
@@ -57,6 +59,20 @@ public class NBTFileBranch implements NBTNode, NBTBranch, Saveable {
 	if (!file.exists())
 	    throw new IllegalArgumentException("file does not exist");
 	this.file = file;
+
+	String name = file.getName();
+	if (SessionLock.FILE_NAME.equals(name)) {
+	    final SessionLock lock = new SessionLock(file);
+	    lock.addYieldListener(new SessionLock.YieldListener() {
+		@Override
+		public void onYield(YieldEvent e) {
+		    System.out.println("yielding...");
+		    if (!lock.acquireQuietly())
+			System.err.println("oh well...");
+		}
+	    });
+	    lock.acquireQuietly();
+	}
 
 	this.fileCache = createFileCache();
 	this.tagCache = parent == null ? createTagCache() : parent.tagCache;
