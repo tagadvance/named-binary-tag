@@ -40,6 +40,8 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 
 import org.jdesktop.swingx.JXTreeTable;
+import org.jnbt.ByteArrayTag.ByteWrapper;
+import org.jnbt.ByteTag;
 import org.jnbt.NBTConstants;
 
 import resources.Resource;
@@ -92,8 +94,7 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 
 	TableColumnModel tableColumnModel = getColumnModel();
 	TableColumn valueColumn = tableColumnModel.getColumn(1);
-	TableCellEditor cellEditor = new NBTTableCellEditor();
-	valueColumn.setCellEditor(cellEditor);
+	valueColumn.setCellEditor(new NBTTableCellEditor());
 	valueColumn.setCellRenderer(new DefaultTableCellRenderer() {
 
 	    @Override
@@ -122,8 +123,12 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 
 	});
 
-	final ImageFactory iconFactory = new ImageFactory();
-	final int size = 16;
+	ImageFactory imageFactory = new ImageFactory();
+	int size = 16;
+	final Image byteImage = imageFactory
+		.createImage(ByteTag.TAG_TYPE, size);
+	final Image compoundImage = imageFactory.createImage(
+		NBTConstants.TYPE_COMPOUND, size);
 	setTreeCellRenderer(new DefaultTreeCellRenderer() {
 
 	    @Override
@@ -153,9 +158,10 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 		} else if (value instanceof Sprite) {
 		    Sprite sprite = (Sprite) value;
 		    image = sprite.getImage();
+		} else if (value instanceof ByteWrapper) {
+		    image = byteImage;
 		} else if (value instanceof NBTFileBranch.TagWrapper) {
-		    image = iconFactory.createImage(NBTConstants.TYPE_COMPOUND,
-			    size);
+		    image = compoundImage;
 		}
 
 		if (image != null) {
@@ -277,8 +283,9 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	TreePath path = new TreePath(root);
 	iterate(path, function);
     }
-
-    public boolean iterate(TreePath path,
+    
+    // TODO: add enum BranchStatement
+    public void iterate(TreePath path,
 	    final Function<TreePath, Boolean> function) {
 	Object node = path.getLastPathComponent();
 	NBTTreeTableModel treeTableModel = getTreeTableModel();
@@ -288,7 +295,6 @@ public class NBTTreeTable extends JXTreeTable implements TreeWillExpandListener 
 	    if (function.apply(childPath))
 		iterate(childPath, function);
 	}
-	return false;
     }
 
 }

@@ -27,6 +27,7 @@ import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import com.nbt.world.NBTFileBranch;
 
+// TODO: extend DefaultTreeTableModel
 public class NBTTreeTableModel extends AbstractTreeTableModel {
 
     static protected String[] columnNames = { "Name", "Value" };
