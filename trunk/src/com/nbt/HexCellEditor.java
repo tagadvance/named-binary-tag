@@ -44,6 +44,12 @@ public class HexCellEditor extends SpinnerCellEditor {
 	spinner.setEditor(new HexEditor(spinner));
     }
 
+    @Override
+    public Object getCellEditorValue() {
+	Integer value = (Integer) super.getCellEditorValue();
+	return value.byteValue();
+    }
+
     class HexEditor extends DefaultEditor {
 
 	public HexEditor(JSpinner spinner) {
