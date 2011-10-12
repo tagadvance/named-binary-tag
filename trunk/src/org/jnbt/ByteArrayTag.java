@@ -209,10 +209,9 @@ public class ByteArrayTag extends Tag<byte[]> implements Mutable<Byte>,
 	public void setValueAt(Object value, int column) {
 	    switch (column) {
 	    case NBTNode.COLUMN_VALUE:
-		if (value instanceof Integer) {
-		    int i = (Integer) value;
+		if (value instanceof Byte) {
 		    byte[] bytes = getValue();
-		    bytes[index] = (byte) i;
+		    bytes[index] = (Byte) value;
 		    modified = true;
 		}
 	    }
