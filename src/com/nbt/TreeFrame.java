@@ -950,6 +950,7 @@ public class TreeFrame extends JFrame {
 
     protected JFileChooser createFileChooser() {
 	JFileChooser fc = new JFileChooser();
+	fc.setFileHidingEnabled(false);
 	fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 	String description = "named binary tag";
 	FileFilter filter = new FileNameExtensionFilter(description, "mcr",
@@ -1230,7 +1231,7 @@ public class TreeFrame extends JFrame {
 
 	});
     }
-    
+
     public void addTag(Tag<?> tag) {
 	if (treeTable == null) {
 	    showErrorDialog("Tree is null");
